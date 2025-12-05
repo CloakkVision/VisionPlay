@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>My First Website</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="theme-dark">
+    <div class="container">
+        <div class="panel">
+            <!-- Top row with logo + version -->
+            <div class="top-row">
+                <div class="logo">CV</div>
+                <span class="version-badge">v1.3</span>
+            </div>
+
+            <!-- Theme selector -->
+            <div class="theme-row">
+                <label for="themeSelect">Theme:</label>
+                <select id="themeSelect">
+                    <option value="dark" selected>Dark</option>
+                    <option value="light">Light</option>
+                    <option value="neon">Neon</option>
+                </select>
+            </div>
+
+            <!-- Title + intro -->
+            <h1 id="title">Hi, I'm Cloakk_Vision</h1>
+            <p>This is my first website. I'm teaching myself to code.</p>
+
+            <!-- Buttons -->
+            <div class="button-row">
+                <button id="colorButton">Change accent color</button>
+                <button id="titleButton">Change title</button>
+                <button id="fontButton">Change font</button>
+            </div>
+
+            <!-- Divider -->
+            <hr class="divider">
+
+            <!-- General Information section -->
+            <div class="info-section">
+                <h2>General Information</h2>
+                <p>This website was created to help me learn HTML, CSS, and JavaScript.</p>
+                <p>You can change the theme, accent color, title, font, read random facts, and play mini games.</p>
+                <p>This project is a practice space to get better at coding step-by-step.</p>
+            </div>
+
+            <!-- Features list -->
+            <div class="feature-list">
+                <h2>Features</h2>
+                <ul>
+                    <li>Switch between Dark, Light, and Neon themes.</li>
+                    <li>Change the accent color used on buttons and highlights.</li>
+                    <li>Toggle between different title styles.</li>
+                    <li>Cycle between different fonts for the page.</li>
+                    <li>Show random facts.</li>
+                    <li>Play two mini games: Click Race & Jump Runner.</li>
+                    <li>Track best Click Race score and best Jump Runner time.</li>
+                </ul>
+            </div>
+
+            <!-- How to use -->
+            <div class="how-to">
+                <h2>How to Use This Site</h2>
+                <ol>
+                    <li>Use the <strong>Theme</strong> dropdown to switch between Dark, Light, and Neon.</li>
+                    <li>Click <strong>Change accent color</strong> or press <strong>B</strong> to cycle colors.</li>
+                    <li>Click <strong>Change title</strong> or press <strong>T</strong> to switch title styles.</li>
+                    <li>Click <strong>Change font</strong> or press <strong>F</strong> to cycle between fonts.</li>
+                    <li>Scroll down to see random facts and play the mini games.</li>
+                    <li>In <strong>Click Race</strong>, click the button as fast as you can for 5 seconds.</li>
+                    <li>In <strong>Jump Runner</strong>, press the spacebar to jump and avoid the obstacle. You have 3 lives, try to survive as long as possible.</li>
+                </ol>
+            </div>
+
+            <!-- Random facts section -->
+            <div class="card-section random-facts">
+                <h2>Random Facts</h2>
+                <p>Click the button to see a random fact.</p>
+                <button id="factButton">Show random fact</button>
+                <p id="factText" class="fact-text"></p>
+            </div>
+
+            <!-- Mini game: Click Race -->
+            <div class="card-section mini-game">
+                <h2>Mini Game 1: Click Race</h2>
+                <p>Click as many times as you can in 5 seconds.</p>
+
+                <div class="game-controls">
+                    <button id="gameStartButton">Start game</button>
+                    <button id="gameClickButton" disabled>Click me!</button>
+                </div>
+
+                <p id="gameStatus" class="game-status">Press "Start game" to begin.</p>
+            </div>
+
+            <!-- Mini game: Jump Runner -->
+            <div class="card-section mini-game">
+                <h2>Mini Game 2: Jump Runner</h2>
+                <p>Press the spacebar to make the character jump and avoid the obstacle. You have 3 lives, try to survive as long as possible.</p>
+
+                <div class="runner-controls">
+                    <button id="runnerStartButton">Start runner game</button>
+                </div>
+
+                <div id="runnerArea">
+                    <div id="runnerGround"></div>
+                    <div id="runnerCharacter"></div>
+                    <div id="runnerObstacle"></div>
+                </div>
+
+                <p id="runnerStatus" class="game-status">Press "Start runner game" to begin.</p>
+                <p id="runnerBest" class="game-status">Best time: 0s</p>
+            </div>
+
+            <!-- Stats section -->
+            <div class="card-section stats-section">
+                <h2>Stats</h2>
+                <p id="statsClickBest" class="game-status">Best Click Race score: 0 clicks</p>
+                <p id="statsRunnerBest" class="game-status">Best Jump Runner time: 0s</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>Made by Cloakk_Vision</p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
