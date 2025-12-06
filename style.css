@@ -1,3 +1,8 @@
+/* Global scroll behavior */
+html {
+    scroll-behavior: smooth;
+}
+
 /* Accent color variable */
 :root {
     --accent-color: #4c6fff;
@@ -6,17 +11,18 @@
 /* Reset & base layout */
 * {
     box-sizing: border-box;
+    margin: 0;
+    padding: 0;
 }
 
 body {
-    margin: 0;
     font-family: Arial, sans-serif;
     display: flex;
     flex-direction: column;
     min-height: 100vh;
 }
 
-/* Themes on body */
+/* Themes */
 body.theme-dark {
     background: radial-gradient(circle at top, #3b82f6 0, #1e1e2f 35%, #020617 100%);
     color: #f5f5f5;
@@ -32,19 +38,150 @@ body.theme-neon {
     color: #e5e7eb;
 }
 
+/* Top navigation */
+.top-nav {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    background: rgba(15, 23, 42, 0.96);
+    border-bottom: 1px solid rgba(148, 163, 184, 0.7);
+    backdrop-filter: blur(16px);
+}
+
+body.theme-light .top-nav {
+    background: rgba(249, 250, 251, 0.96);
+    border-color: #d1d5db;
+}
+
+.nav-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.nav-logo-circle {
+    width: 32px;
+    height: 32px;
+    border-radius: 999px;
+    background: var(--accent-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 0.9rem;
+    box-shadow: 0 0 10px rgba(99, 102, 241, 0.7);
+    color: #fff;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.nav-logo-circle:hover {
+    transform: scale(1.05) rotate(-3deg);
+    box-shadow: 0 0 16px rgba(99, 102, 241, 0.95);
+}
+
+.nav-brand {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.1;
+}
+
+.nav-title {
+    font-size: 0.95rem;
+    font-weight: 600;
+}
+
+.nav-subtitle {
+    font-size: 0.75rem;
+    opacity: 0.8;
+}
+
+/* Nav menu */
+.nav-menu {
+    display: none;
+    flex-direction: column;
+    position: absolute;
+    right: 10px;
+    top: 52px;
+    background: rgba(15, 23, 42, 0.98);
+    border-radius: 10px;
+    border: 1px solid rgba(148, 163, 184, 0.7);
+    padding: 8px 0;
+    min-width: 180px;
+}
+
+body.theme-light .nav-menu {
+    background: #ffffff;
+    border-color: #d1d5db;
+}
+
+.nav-menu.open {
+    display: flex;
+}
+
+.nav-link {
+    padding: 8px 14px;
+    font-size: 0.9rem;
+    text-decoration: none;
+    color: inherit;
+    cursor: pointer;
+}
+
+.nav-link:hover {
+    background-color: rgba(148, 163, 184, 0.20);
+}
+
+/* Nav toggle (hamburger) */
+.nav-toggle {
+    border: none;
+    background: transparent;
+    color: inherit;
+    font-size: 1.3rem;
+    cursor: pointer;
+}
+
+/* Desktop nav */
+@media (min-width: 768px) {
+    .nav-toggle {
+        display: none;
+    }
+
+    .nav-menu {
+        display: flex;
+        position: static;
+        flex-direction: row;
+        background: transparent;
+        border: none;
+        padding: 0;
+        gap: 10px;
+    }
+
+    .nav-link {
+        border-radius: 999px;
+        padding: 6px 12px;
+    }
+
+    .nav-link:hover {
+        background-color: rgba(148, 163, 184, 0.25);
+    }
+}
+
 /* Main layout */
 .container {
     flex: 1;
     display: flex;
     justify-content: center;
     align-items: flex-start;
-    padding: 32px 16px 32px;
+    padding: 24px 12px 32px;
 }
 
 /* Card panel */
 .panel {
     width: 100%;
-    max-width: 720px;
+    max-width: 760px;
     background-color: rgba(15, 23, 42, 0.92);
     border-radius: 18px;
     border: 1px solid rgba(148, 163, 184, 0.6);
@@ -54,14 +191,12 @@ body.theme-neon {
     animation: fadeInUp 0.6s ease-out;
 }
 
-/* Panel changes in light theme */
 body.theme-light .panel {
     background-color: #ffffff;
     border-color: #d1d5db;
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
 }
 
-/* Panel neon tweaks */
 body.theme-neon .panel {
     background-color: rgba(15, 23, 42, 0.96);
 }
@@ -85,6 +220,7 @@ body.theme-neon .panel {
     font-weight: bold;
     font-size: 1.1rem;
     box-shadow: 0 0 12px rgba(99, 102, 241, 0.7);
+    color: #fff;
 }
 
 .version-badge {
@@ -113,26 +249,43 @@ body.theme-neon .panel {
     border: 1px solid #4b5563;
 }
 
-/* Dark theme dropdown */
 body.theme-dark .theme-row select {
     background-color: #020617;
     color: #f9fafb;
 }
 
-/* Light theme dropdown */
 body.theme-light .theme-row select {
     background-color: #ffffff;
     color: #111827;
     border-color: #9ca3af;
 }
 
-/* Neon theme dropdown */
 body.theme-neon .theme-row select {
     background-color: #0f172a;
     color: #e5e7eb;
 }
 
-/* Title with glow */
+/* Sound toggle button overrides */
+.sound-toggle {
+    padding: 4px 10px;
+    font-size: 0.8rem;
+    border-radius: 999px;
+    border: 1px solid rgba(148, 163, 184, 0.9);
+    background: transparent;
+    color: inherit;
+    box-shadow: none;
+}
+
+.sound-toggle:hover {
+    background-color: rgba(148, 163, 184, 0.25);
+    transform: none;
+}
+
+.sound-toggle.muted {
+    opacity: 0.6;
+}
+
+/* Title */
 h1 {
     font-size: 2.5rem;
     margin-bottom: 8px;
@@ -146,16 +299,61 @@ p {
     margin: 6px auto;
 }
 
+/* Hero stats row */
+.hero-stats {
+    max-width: 650px;
+    width: 100%;
+    margin: 10px auto 4px;
+    padding: 10px 14px;
+    border-radius: 999px;
+    background: radial-gradient(circle at top left, rgba(59, 130, 246, 0.20), transparent 60%),
+                rgba(15, 23, 42, 0.85);
+    border: 1px solid rgba(148, 163, 184, 0.5);
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+}
+
+body.theme-light .hero-stats {
+    background: #e5e7eb;
+    border-color: #cbd5f5;
+}
+
+body.theme-neon .hero-stats {
+    background: radial-gradient(circle at top left, rgba(34, 197, 94, 0.28), transparent 60%),
+                rgba(15, 23, 42, 0.95);
+}
+
+.hero-stat {
+    display: flex;
+    flex-direction: column;
+    min-width: 130px;
+    text-align: center;
+}
+
+.hero-stat-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    opacity: 0.8;
+}
+
+.hero-stat-value {
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
 /* Buttons row */
 .button-row {
-    margin-top: 18px;
+    margin-top: 14px;
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
     justify-content: center;
 }
 
-/* Buttons with hover animation */
+/* Buttons */
 button {
     padding: 10px 18px;
     border: none;
@@ -178,9 +376,23 @@ button:active {
     opacity: 0.85;
 }
 
+/* Keyboard focus outlines */
+button:focus-visible,
+.nav-link:focus-visible,
+.fact-btn:focus-visible,
+.time-preset-btn:focus-visible,
+.difficulty-btn:focus-visible,
+.runner-mode-btn:focus-visible,
+.reaction-mode-btn:focus-visible,
+#themeSelect:focus-visible,
+#gameDurationInput:focus-visible {
+    outline: 2px solid var(--accent-color);
+    outline-offset: 2px;
+}
+
 /* Divider line */
 .divider {
-    margin: 24px auto 16px;
+    margin: 20px auto 16px;
     border: 0;
     height: 1px;
     width: 100%;
@@ -282,6 +494,69 @@ body.theme-light .how-to {
     background-color: rgba(255, 255, 255, 0.03);
     border-radius: 12px;
     text-align: left;
+    border: 1px solid rgba(148, 163, 184, 0.4);
+    transition:
+        transform 0.18s ease,
+        box-shadow 0.18s ease,
+        background-color 0.18s ease,
+        border-color 0.18s ease;
+}
+
+/* Card hover effect */
+.card-section:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.4);
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+/* Active game card glow */
+.card-section.active-game {
+    border-color: var(--accent-color);
+    box-shadow: 0 0 20px rgba(34, 197, 94, 0.6);
+    transform: translateY(-3px) scale(1.01);
+}
+
+/* Badges (mode, difficulty, lives) */
+.runner-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 6px;
+    margin-bottom: 4px;
+}
+
+.badge {
+    font-size: 0.75rem;
+    padding: 3px 8px;
+    border-radius: 999px;
+    border: 1px solid rgba(148, 163, 184, 0.8);
+    background-color: rgba(15, 23, 42, 0.9);
+    color: #e5e7eb;
+}
+
+body.theme-light .badge {
+    background-color: #e5e7eb;
+    color: #111827;
+}
+
+.badge-mode {
+    border-color: #38bdf8;
+}
+
+.badge-diff-easy {
+    border-color: #22c55e;
+}
+
+.badge-diff-normal {
+    border-color: #eab308;
+}
+
+.badge-diff-hard {
+    border-color: #ef4444;
+}
+
+.badge-lives {
+    border-color: #f97316;
 }
 
 /* Random facts text */
@@ -291,7 +566,25 @@ body.theme-light .how-to {
     min-height: 24px;
 }
 
-/* Mini game section */
+/* Fact buttons */
+.fact-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 10px;
+    justify-content: center;
+}
+
+.fact-btn {
+    padding: 8px 14px;
+    border-radius: 6px;
+    background: var(--accent-color);
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+/* Mini game sections */
 .mini-game .game-controls,
 .mini-game .runner-controls {
     display: flex;
@@ -301,20 +594,217 @@ body.theme-light .how-to {
 }
 
 .game-status {
-    margin-top: 10px;
+    margin-top: 6px;
     font-size: 0.95rem;
     opacity: 0.9;
 }
 
-/* Click Race area (using text only, no extra box needed) */
+/* Timer label styling */
+#gameTimerLabel {
+    font-size: 0.9rem;
+    opacity: 0.85;
+}
+
+/* Click Race card styling */
+#clickRaceSection {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    background:
+        radial-gradient(circle at top left, rgba(56, 189, 248, 0.18), transparent 55%),
+        rgba(255, 255, 255, 0.03);
+}
+
+/* Gradient background for Random Facts */
+#factsSection {
+    background:
+        radial-gradient(circle at top left, rgba(129, 140, 248, 0.22), transparent 55%),
+        rgba(255, 255, 255, 0.03);
+}
+
+/* Gradient background for Jump Runner */
+#jumpRunnerSection {
+    background:
+        radial-gradient(circle at top left, rgba(34, 197, 94, 0.22), transparent 55%),
+        rgba(255, 255, 255, 0.03);
+}
+
+/* Gradient background for Reaction Test */
+#reactionSection {
+    background:
+        radial-gradient(circle at top left, rgba(244, 63, 94, 0.20), transparent 55%),
+        rgba(255, 255, 255, 0.03);
+}
+
+/* Gradient background for Stats */
+#statsSection {
+    background:
+        radial-gradient(circle at top left, rgba(251, 191, 36, 0.22), transparent 55%),
+        rgba(255, 255, 255, 0.03);
+}
+
+/* Gradient background for About section */
+#aboutSection {
+    background:
+        radial-gradient(circle at top left, rgba(96, 165, 250, 0.20), transparent 55%),
+        rgba(255, 255, 255, 0.03);
+}
+
+/* Layout for Click Race controls */
+#clickRaceSection .game-controls {
+    width: 100%;
+    max-width: 360px;
+    margin-top: 8px;
+    display: flex;
+    gap: 10px;
+    justify-content: space-between;
+}
+
+/* Start button normal */
+#gameStartButton {
+    flex: 1;
+}
+
+/* Big Click button */
+#gameClickButton {
+    flex: 1.4;
+    padding: 16px 18px;
+    font-size: 1.05rem;
+    border-radius: 999px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+}
+
+/* Disabled state for Click button */
+#gameClickButton:disabled {
+    opacity: 0.6;
+    box-shadow: none;
+    cursor: not-allowed;
+}
+
+/* Click Race time controls */
+.game-time-controls {
+    width: 100%;
+    max-width: 420px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 8px;
+    font-size: 0.9rem;
+    align-items: center;
+}
+
+.game-time-controls > span {
+    font-weight: 500;
+}
+
+.time-preset-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+}
+
+.time-preset-btn {
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 0.85rem;
+}
+
+/* Active preset time button */
+.time-preset-btn.active {
+    background-color: #22c55e;
+    box-shadow: 0 0 12px rgba(34, 197, 94, 0.8);
+    transform: scale(1.05);
+}
+
+.time-custom-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.time-custom-row input {
+    width: 70px;
+    padding: 4px 6px;
+    border-radius: 6px;
+    border: 1px solid #6b7280;
+    background-color: #020617;
+    color: #f9fafb;
+}
+
+body.theme-light .time-custom-row input {
+    background-color: #ffffff;
+    color: #111827;
+}
+
+/* Difficulty buttons */
+.difficulty-controls {
+    margin-top: 10px;
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+}
+
+.difficulty-btn {
+    padding: 8px 14px;
+    border-radius: 6px;
+    background: var(--accent-color);
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: transform 0.2s ease;
+}
+
+.difficulty-btn:hover {
+    transform: scale(1.05);
+}
+
+/* Active difficulty button - green */
+.difficulty-btn.active {
+    background-color: #22c55e;
+    box-shadow: 0 0 12px rgba(34, 197, 94, 0.8);
+    transform: scale(1.05);
+}
+
+/* Runner mode tabs */
+.runner-mode-controls {
+    margin-top: 8px;
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+}
+
+.runner-mode-btn {
+    padding: 8px 14px;
+    border-radius: 999px;
+    background-color: rgba(15, 23, 42, 0.9);
+    border: 1px solid rgba(148, 163, 184, 0.8);
+    font-size: 0.9rem;
+}
+
+/* Active runner mode tab */
+.runner-mode-btn.active {
+    background-color: #22c55e;
+    border-color: #22c55e;
+    box-shadow: 0 0 12px rgba(34, 197, 94, 0.8);
+}
 
 /* Jumper game area */
+#jumpRunnerSection {
+    position: relative;
+}
+
+/* Game area */
 #runnerArea {
     margin-top: 12px;
     position: relative;
     width: 100%;
     max-width: 360px;
-    height: 160px;
+    height: 170px;
     border-radius: 12px;
     border: 1px dashed rgba(148, 163, 184, 0.8);
     overflow: hidden;
@@ -331,47 +821,141 @@ body.theme-neon #runnerArea {
     background-color: rgba(15, 23, 42, 0.95);
 }
 
+/* Parallax background layers */
+.runner-bg {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* Sky gradient */
+.runner-bg-sky {
+    background: linear-gradient(to bottom, #0f172a, #1f2937);
+}
+
+/* Distant mountains */
+.runner-bg-mountains {
+    background: repeating-linear-gradient(
+        -30deg,
+        #111827,
+        #111827 20px,
+        #020617 20px,
+        #020617 40px
+    );
+    opacity: 0.4;
+    animation: parallax-slow 20s linear infinite;
+}
+
+/* Closer hills */
+.runner-bg-hills {
+    background: repeating-linear-gradient(
+        -20deg,
+        #022c22,
+        #022c22 16px,
+        #064e3b 16px,
+        #064e3b 32px
+    );
+    opacity: 0.8;
+    animation: parallax-medium 12s linear infinite;
+}
+
+/* Ground texture */
+.runner-bg-ground {
+    background: repeating-linear-gradient(
+        -10deg,
+        #1e293b,
+        #1e293b 12px,
+        #0f172a 12px,
+        #0f172a 24px
+    );
+    opacity: 0.9;
+    animation: parallax-fast 6s linear infinite;
+}
+
 /* Ground line */
 #runnerGround {
     position: absolute;
     left: 0;
     right: 0;
-    bottom: 12px;
+    bottom: 14px;
     height: 3px;
     background-color: rgba(148, 163, 184, 0.9);
+    z-index: 4;
 }
 
-/* Character */
+/* Character (little runner person) */
 #runnerCharacter {
     position: absolute;
-    width: 30px;
+    left: 26px;
+    bottom: 17px;
+    width: 26px;
     height: 40px;
-    left: 24px;
-    bottom: 15px;
-    border-radius: 8px;
-    background-color: var(--accent-color);
+    z-index: 5;
+    background: linear-gradient(to bottom, #22c55e, #16a34a);
+    border-radius: 6px;
+    box-shadow: 0 0 0 2px #065f46;
+    transform: translateY(0);
+    animation: none;
 }
 
-/* Obstacle - slightly smaller to make game easier */
+/* Head */
+#runnerCharacter::before {
+    content: "";
+    position: absolute;
+    top: -20px;
+    left: 3px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background-color: #e5e7eb;
+    box-shadow: 0 0 0 2px #0f172a;
+}
+
+/* Face */
+#runnerCharacter::after {
+    content: "";
+    position: absolute;
+    top: -13px;
+    left: 6px;
+    width: 14px;
+    height: 8px;
+    background:
+        radial-gradient(circle at 3px 2px, #0f172a 60%, transparent 62%),
+        radial-gradient(circle at 11px 2px, #0f172a 60%, transparent 62%),
+        linear-gradient(to bottom, transparent 4px, #0f172a 4px, #0f172a 6px, transparent 6px);
+}
+
+/* Obstacle */
 #runnerObstacle {
     position: absolute;
-    width: 22px;
-    height: 32px;
+    width: 18px;
+    height: 26px;
     right: -40px;
-    bottom: 15px;
-    border-radius: 6px;
-    background-color: #ef4444;
+    bottom: 17px;
+    border-radius: 4px;
+    background: linear-gradient(to bottom, #f97373, #b91c1c);
+    z-index: 4;
 }
 
-/* Jump animation */
-.jump {
-    animation: runner-jump 0.5s ease-out;
+/* Jump animation – uses transform + CSS vars */
+#runnerCharacter.jump {
+    animation: runner-jump var(--jump-duration, 550ms) ease-out;
 }
 
 @keyframes runner-jump {
-    0% { bottom: 15px; }
-    50% { bottom: 70px; }
-    100% { bottom: 15px; }
+    0% {
+        transform: translateY(0);
+    }
+    35% {
+        transform: translateY(calc(-1 * var(--jump-height, 80px)));
+    }
+    65% {
+        transform: translateY(calc(-1 * var(--jump-height, 80px)));
+    }
+    100% {
+        transform: translateY(0);
+    }
 }
 
 /* Obstacle animation */
@@ -382,6 +966,129 @@ body.theme-neon #runnerArea {
     to {
         right: 100%;
     }
+}
+
+/* Parallax keyframes */
+@keyframes parallax-slow {
+    from { background-position-x: 0; }
+    to   { background-position-x: -200px; }
+}
+
+@keyframes parallax-medium {
+    from { background-position-x: 0; }
+    to   { background-position-x: -260px; }
+}
+
+@keyframes parallax-fast {
+    from { background-position-x: 0; }
+    to   { background-position-x: -340px; }
+}
+
+/* Runner overlay */
+.runner-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.85);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+}
+
+.runner-overlay-box {
+    background: rgba(15, 23, 42, 0.95);
+    border-radius: 12px;
+    padding: 12px 16px;
+    text-align: center;
+    border: 1px solid rgba(148, 163, 184, 0.9);
+}
+
+/* ===== Reaction Test styles ===== */
+
+.reaction-mode-controls {
+    margin-top: 8px;
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.reaction-mode-btn {
+    padding: 6px 12px;
+    border-radius: 999px;
+    background-color: rgba(15, 23, 42, 0.9);
+    border: 1px solid rgba(148, 163, 184, 0.8);
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+}
+
+/* Active mode button */
+.reaction-mode-btn.active {
+    background-color: #22c55e;
+    border-color: #22c55e;
+    box-shadow: 0 0 10px rgba(34, 197, 94, 0.7);
+    transform: scale(1.05);
+    color: #ffffff;
+}
+
+/* Reaction area */
+.reaction-area {
+    margin-top: 10px;
+    width: 100%;
+    max-width: 360px;
+    height: 140px;
+    border-radius: 12px;
+    border: 1px solid rgba(148, 163, 184, 0.8);
+    margin-left: auto;
+    margin-right: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px;
+    text-align: center;
+    user-select: none;
+    cursor: pointer;
+    transition: background-color 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.reaction-area p {
+    margin: 0;
+    font-size: 0.95rem;
+}
+
+/* Idle */
+.reaction-area.reaction-idle {
+    background-color: rgba(15, 23, 42, 0.9);
+}
+
+/* Waiting (red) */
+.reaction-area.reaction-waiting {
+    background-color: #7f1d1d;
+    border-color: #f97373;
+    box-shadow: 0 0 14px rgba(248, 113, 113, 0.7);
+}
+
+/* Ready (green) */
+.reaction-area.reaction-ready {
+    background-color: #14532d;
+    border-color: #22c55e;
+    box-shadow: 0 0 14px rgba(34, 197, 94, 0.8);
+}
+
+/* Reaction controls */
+.reaction-controls {
+    margin-top: 10px;
+    display: flex;
+    justify-content: center;
+}
+
+/* About section */
+.about-section {
+    background: rgba(255, 255, 255, 0.04);
+    border-radius: 12px;
+    padding: 16px;
+    margin-top: 20px;
 }
 
 /* Footer */
@@ -402,4 +1109,78 @@ body.theme-neon #runnerArea {
         opacity: 1;
         transform: translateY(0);
     }
+}
+
+/* Mobile tweaks */
+@media (max-width: 480px) {
+    h1 {
+        font-size: 2rem;
+    }
+
+    .panel {
+        padding: 18px 12px;
+    }
+
+    button {
+        font-size: 0.85rem;
+        padding: 8px 12px;
+    }
+
+    #gameClickButton {
+        padding: 12px 14px;
+    }
+
+    .hero-stats {
+        flex-direction: column;
+        border-radius: 12px;
+    }
+}
+
+/* Small helper text under each game title */
+.controls {
+    margin-top: 4px;
+    font-size: 0.9rem;
+    opacity: 0.85;
+}
+
+/* Polished Stats / scoreboard look */
+.scoreboard {
+    margin-top: 10px;
+    padding: 16px 18px;
+    border-radius: 12px;
+    background:
+        radial-gradient(circle at top left, rgba(59, 130, 246, 0.22), transparent 60%),
+        rgba(15, 23, 42, 0.96);
+    border: 1px solid rgba(148, 163, 184, 0.9);
+    box-shadow:
+        inset 0 0 12px rgba(15, 23, 42, 0.85),
+        0 8px 20px rgba(0, 0, 0, 0.35);
+    text-align: left;
+}
+
+body.theme-light .scoreboard {
+    background:
+        radial-gradient(circle at top left, rgba(59, 130, 246, 0.18), transparent 60%),
+        #f3f4f6;
+    border-color: #9ca3af;
+    box-shadow:
+        inset 0 0 8px rgba(148, 163, 184, 0.35),
+        0 6px 16px rgba(0, 0, 0, 0.12);
+}
+
+.scoreboard .game-status {
+    font-family: "Courier New", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    margin: 2px 0;
+    font-size: 0.95rem;
+}
+
+/* Back-to-top link */
+.footer-link {
+    color: inherit;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.footer-link:hover {
+    opacity: 0.8;
 }
