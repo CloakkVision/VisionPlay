@@ -1,146 +1,174 @@
-// ===== BASIC ELEMENTS =====
+// ============================================
+// VisionPlay v4.2 - Full Script (JS Jump Runner)
+// ============================================
+
+// ---------- BASIC DOM ----------
 const body = document.body;
 
-// Buttons and text elements
-const colorButton = document.getElementById("colorButton");
-const titleButton = document.getElementById("titleButton");
-const fontButton = document.getElementById("fontButton");
-const title = document.getElementById("title");
-
-// Theme selector
+// Controls
 const themeSelect = document.getElementById("themeSelect");
+const soundThemeSelect = document.getElementById("soundThemeSelect");
 const soundToggleButton = document.getElementById("soundToggleButton");
-
-// Stats elements
-const statsClickBest = document.getElementById("statsClickBest");
-const statsRunnerBest = document.getElementById("statsRunnerBest");
-const statsReactionBest = document.getElementById("statsReactionBest");
-const resetStatsButton = document.getElementById("resetStatsButton");
+const colorButton = document.getElementById("colorButton");
+const fontButton = document.getElementById("fontButton");
+const titleButton = document.getElementById("titleButton");
+const typewriterToggleButton = document.getElementById("typewriterToggleButton");
+const titleEl = document.getElementById("title");
 
 // Navigation
 const navToggle = document.getElementById("navToggle");
 const navMenu = document.getElementById("navMenu");
 const navLinks = document.querySelectorAll(".nav-link");
 
-// Game card sections (for active glow)
+// Game cards
 const clickRaceCard = document.getElementById("clickRaceSection");
 const jumpRunnerCard = document.getElementById("jumpRunnerSection");
 const reactionCard = document.getElementById("reactionSection");
+const aimTrainerCard = document.getElementById("aimTrainerSection");
 
-// Badges for Jump Runner
-const runnerModeBadge = document.getElementById("runnerModeBadge");
-const runnerDiffBadge = document.getElementById("runnerDiffBadge");
-const runnerLivesBadge = document.getElementById("runnerLivesBadge");
+// Stats elements
+const statsClickBest = document.getElementById("statsClickBest");
+const statsRunnerBest = document.getElementById("statsRunnerBest");
+const statsReactionBest = document.getElementById("statsReactionBest");
+const statsAimBest = document.getElementById("statsAimBest");
+const resetStatsButton = document.getElementById("resetStatsButton");
 
-// ===== LOCAL STORAGE HELPERS =====
+// ---------- STORAGE HELPERS ----------
 function saveToStorage(key, value) {
     try {
         localStorage.setItem(key, JSON.stringify(value));
-    } catch (e) {
-        // ignore if blocked
-    }
+    } catch (_) {}
 }
-
 function loadFromStorage(key, defaultValue) {
     try {
         const raw = localStorage.getItem(key);
         if (raw === null) return defaultValue;
         return JSON.parse(raw);
-    } catch (e) {
+    } catch (_) {
         return defaultValue;
     }
 }
 
-// ===== SOUND EFFECTS =====
-let clickSfx,
-    jumpSfx,
-    hitSfx,
-    gameOverSfx,
-    bgMusic,
-    diffSelectSfx,
-    whooshSfx,
-    perfectSfx,
-    hoverSfx,
-    startFanSfx;
-
-let soundEnabled = true;
+// ============================================
+// SOUND SYSTEM (SFX + BG MUSIC)
+// ============================================
+let clickSfx, jumpSfx, hitSfx, gameOverSfx, diffSelectSfx, whooshSfx, perfectSfx, hoverSfx, startFanSfx;
+let bgClassic, bgArcade, bgSoft;
+let soundEnabled = false;       // OFF by default
+let currentBgTheme = "classic";
+let currentBgAudio = null;
 
 try {
     clickSfx      = new Audio("click.mp3");
     jumpSfx       = new Audio("jump.mp3");
     hitSfx        = new Audio("hit.mp3");
     gameOverSfx   = new Audio("gameover.mp3");
-    bgMusic       = new Audio("bgmusic.mp3");
     diffSelectSfx = new Audio("diffselect.mp3");
     whooshSfx     = new Audio("whoosh.mp3");
     perfectSfx    = new Audio("perfect.mp3");
     hoverSfx      = new Audio("hover.mp3");
     startFanSfx   = new Audio("startfan.mp3");
 
-    if (bgMusic) {
-        bgMusic.loop = true;
-        bgMusic.volume = 0.25;
-    }
-} catch (e) {
-    // ignore
-}
+    bgClassic     = new Audio("bgmusic_classic.mp3");
+    bgArcade      = new Audio("bgmusic_arcade.mp3");
+    bgSoft        = new Audio("bgmusic_soft.mp3");
+
+    [bgClassic, bgArcade, bgSoft].forEach(a => {
+        if (!a) return;
+        a.loop = true;
+        a.volume = 0.25;
+    });
+
+    currentBgAudio = bgClassic;
+} catch (_) {}
 
 function playSound(sfx) {
     if (!soundEnabled) return;
-    if (!sfx || !sfx.play) return;
+    if (!sfx || typeof sfx.play !== "function") return;
     try {
         sfx.currentTime = 0;
         sfx.play();
-    } catch (e) {
-        // ignore
-    }
+    } catch (_) {}
 }
 
-// Sound toggle WITH background music resume
-if (soundToggleButton) {
-    soundToggleButton.addEventListener("click", () => {
-        // Play click before toggling so you hear it
-        if (soundEnabled) {
-            playSound(clickSfx);
-        }
+function stopAllBgMusic() {
+    [bgClassic, bgArcade, bgSoft].forEach(a => {
+        if (!a) return;
+        try { a.pause(); } catch (_) {}
+    });
+}
 
-        // Flip the mute state
+function updateBgMusic() {
+    if (!soundEnabled) {
+        stopAllBgMusic();
+        return;
+    }
+    stopAllBgMusic();
+    if (!currentBgAudio) return;
+    try {
+        currentBgAudio.currentTime = 0;
+        currentBgAudio.play();
+    } catch (_) {}
+}
+
+// Toggle sound on/off
+if (soundToggleButton) {
+    soundToggleButton.textContent = "Sound: Off";
+    soundToggleButton.classList.add("muted");
+    soundToggleButton.setAttribute("aria-pressed", "true");
+
+    soundToggleButton.addEventListener("click", () => {
+        if (soundEnabled) playSound(clickSfx);
+
         soundEnabled = !soundEnabled;
         soundToggleButton.textContent = soundEnabled ? "Sound: On" : "Sound: Off";
         soundToggleButton.classList.toggle("muted", !soundEnabled);
         soundToggleButton.setAttribute("aria-pressed", soundEnabled ? "false" : "true");
-
-        // If turning sound OFF -> pause music
-        if (!soundEnabled && bgMusic) {
-            bgMusic.pause();
-        }
-
-        // If turning sound ON -> resume music
-        if (soundEnabled && bgMusic) {
-            bgMusic.play().catch(() => {
-                // ignore autoplay errors
-            });
-        }
+        updateBgMusic();
     });
 }
 
-// ===== ACTIVE GAME CARD GLOW =====
+// Background music theme (classic / arcade / soft)
+if (soundThemeSelect) {
+    const savedTheme = loadFromStorage("vp_bgTheme", "classic");
+    currentBgTheme = ["classic", "arcade", "soft"].includes(savedTheme) ? savedTheme : "classic";
+    soundThemeSelect.value = currentBgTheme;
+
+    function setBgTheme(theme) {
+        currentBgTheme = theme;
+        saveToStorage("vp_bgTheme", theme);
+
+        if (theme === "arcade") currentBgAudio = bgArcade;
+        else if (theme === "soft") currentBgAudio = bgSoft;
+        else currentBgAudio = bgClassic;
+
+        if (soundEnabled) updateBgMusic();
+    }
+
+    setBgTheme(currentBgTheme);
+
+    soundThemeSelect.addEventListener("change", () => {
+        playSound(clickSfx);
+        setBgTheme(soundThemeSelect.value);
+    });
+}
+
+// ============================================
+// NAV + ACTIVE CARD
+// ============================================
 function setActiveGameCard(card) {
-    [clickRaceCard, jumpRunnerCard, reactionCard].forEach(c => {
+    [clickRaceCard, jumpRunnerCard, reactionCard, aimTrainerCard].forEach(c => {
         if (!c) return;
         c.classList.remove("active-game");
     });
-    if (card) {
-        card.classList.add("active-game");
-    }
+    if (card) card.classList.add("active-game");
 }
 
-// ===== NAV BEHAVIOR =====
 if (navToggle && navMenu) {
     navToggle.addEventListener("click", () => {
-        const isOpen = navMenu.classList.toggle("open");
+        const open = navMenu.classList.toggle("open");
+        navToggle.setAttribute("aria-expanded", open ? "true" : "false");
         playSound(clickSfx);
-        navToggle.setAttribute("aria-expanded", isOpen ? "true" : "false");
     });
 }
 
@@ -148,1040 +176,951 @@ navLinks.forEach(link => {
     link.addEventListener("click", () => {
         if (navMenu && navMenu.classList.contains("open")) {
             navMenu.classList.remove("open");
+            navToggle.setAttribute("aria-expanded", "false");
         }
-        playSound(clickSfx);
-    });
-
-    link.addEventListener("mouseenter", () => {
-        playSound(hoverSfx);
     });
 });
 
-// ===== ACCENT COLOR CYCLER =====
-const accentColors = ["#4c6fff", "#ec4899", "#22c55e", "#eab308", "#f97316"];
+// ============================================
+// THEME / ACCENT / FONT / TITLE / TYPEWRITER
+// ============================================
+const themeClasses = ["theme-dark", "theme-light", "theme-neon"];
+const savedTheme = loadFromStorage("vp_theme", "dark");
+if (body) {
+    body.classList.remove(...themeClasses);
+    body.classList.add(`theme-${savedTheme}`);
+}
+if (themeSelect) {
+    themeSelect.value = savedTheme;
+    themeSelect.addEventListener("change", () => {
+        const val = themeSelect.value;
+        body.classList.remove(...themeClasses);
+        body.classList.add(`theme-${val}`);
+        saveToStorage("vp_theme", val);
+        playSound(clickSfx);
+    });
+}
+
+// Accent color
+const accentColors = ["#4c6fff", "#22c55e", "#f97316", "#ec4899", "#eab308", "#06b6d4"];
 let accentIndex = 0;
-
-function applyAccentColor() {
-    const color = accentColors[accentIndex];
-    document.documentElement.style.setProperty("--accent-color", color);
+const savedAccent = loadFromStorage("vp_accent", null);
+if (savedAccent) {
+    document.documentElement.style.setProperty("--accent-color", savedAccent);
+    const idx = accentColors.indexOf(savedAccent);
+    accentIndex = idx >= 0 ? idx : 0;
 }
-
-function changeAccentColor() {
-    accentIndex = (accentIndex + 1) % accentColors.length;
-    applyAccentColor();
-}
-
 if (colorButton) {
     colorButton.addEventListener("click", () => {
-        changeAccentColor();
         playSound(clickSfx);
+        accentIndex = (accentIndex + 1) % accentColors.length;
+        const next = accentColors[accentIndex];
+        document.documentElement.style.setProperty("--accent-color", next);
+        saveToStorage("vp_accent", next);
     });
 }
 
-applyAccentColor();
-
-// ===== TITLE TOGGLE + TYPEWRITER =====
-const originalTitleText = "Welcome to VisionPlay";
-const altTitleText = "A tiny web arcade with games and random facts.";
-let showingOriginalTitle = true;
-let typewriterHasRun = false;
-
-function runTypewriterOnce() {
-    if (typewriterHasRun) return;
-    typewriterHasRun = true;
-
-    const text = originalTitleText;
-    title.textContent = "";
-    let index = 0;
-
-    const interval = setInterval(() => {
-        title.textContent += text[index];
-        index++;
-        if (index >= text.length) {
-            clearInterval(interval);
-        }
-    }, 80);
-}
-
-function toggleTitle() {
-    playSound(clickSfx);
-    if (showingOriginalTitle) {
-        title.textContent = altTitleText;
-        showingOriginalTitle = false;
-    } else {
-        title.textContent = originalTitleText;
-        showingOriginalTitle = true;
-    }
-}
-
-if (titleButton) {
-    titleButton.addEventListener("click", toggleTitle);
-}
-
-runTypewriterOnce();
-
-// ===== FONT CYCLER =====
-const fonts = [
-    "Arial, sans-serif",
-    "Verdana, sans-serif",
-    "Georgia, serif",
-    "'Courier New', monospace"
-];
+// Font cycle
+const fontClasses = ["font-default", "font-rounded", "font-mono"];
 let fontIndex = 0;
-
-function changeFont() {
-    fontIndex = (fontIndex + 1) % fonts.length;
-    body.style.fontFamily = fonts[fontIndex];
+if (body) {
+    const savedFont = loadFromStorage("vp_font", "font-default");
+    body.classList.remove(...fontClasses);
+    body.classList.add(savedFont);
+    fontIndex = Math.max(0, fontClasses.indexOf(savedFont));
 }
-
 if (fontButton) {
     fontButton.addEventListener("click", () => {
-        changeFont();
         playSound(clickSfx);
+        body.classList.remove(...fontClasses);
+        fontIndex = (fontIndex + 1) % fontClasses.length;
+        const cls = fontClasses[fontIndex];
+        body.classList.add(cls);
+        saveToStorage("vp_font", cls);
     });
 }
 
-// ===== THEME SWITCHER =====
-function applyTheme(name) {
-    body.classList.remove("theme-dark", "theme-light", "theme-neon");
-    body.classList.add(`theme-${name}`);
-}
+// Title change
+if (titleButton && titleEl) {
+    const savedTitle = loadFromStorage("vp_title", null);
+    if (savedTitle) titleEl.textContent = savedTitle;
 
-const storedTheme = loadFromStorage("vp_theme", "dark");
-
-if (themeSelect) {
-    themeSelect.value = storedTheme;
-    applyTheme(storedTheme);
-
-    themeSelect.addEventListener("change", (event) => {
-        const t = event.target.value;
-        applyTheme(t);
-        saveToStorage("vp_theme", t);
+    titleButton.addEventListener("click", () => {
         playSound(clickSfx);
+        const newTitle = prompt("Enter a new title that fits VisionPlay:", titleEl.textContent.trim());
+        if (newTitle && newTitle.trim() !== "") {
+            titleEl.textContent = newTitle.trim();
+            saveToStorage("vp_title", newTitle.trim());
+        }
     });
-} else {
-    applyTheme(storedTheme);
 }
 
-// ===== RANDOM FACTS =====
+// Typewriter effect
+let typewriterTimer = null;
+let typewriterActive = false;
+
+function stopTypewriter() {
+    if (!titleEl) return;
+    if (typewriterTimer) clearInterval(typewriterTimer);
+    typewriterTimer = null;
+    typewriterActive = false;
+    titleEl.classList.remove("typewriter-active");
+
+    const saved = loadFromStorage("vp_title", titleEl.textContent);
+    titleEl.textContent = saved || "Welcome to VisionPlay";
+}
+
+function startTypewriter() {
+    if (!titleEl) return;
+    stopTypewriter();
+    typewriterActive = true;
+    titleEl.classList.add("typewriter-active");
+
+    const full = titleEl.textContent || "Welcome to VisionPlay";
+    let i = 0;
+    typewriterTimer = setInterval(() => {
+        if (!typewriterActive) return;
+        if (i <= full.length) {
+            titleEl.textContent = full.slice(0, i);
+            i++;
+        } else {
+            stopTypewriter();
+        }
+    }, 90);
+}
+
+if (typewriterToggleButton) {
+    typewriterToggleButton.addEventListener("click", () => {
+        playSound(clickSfx);
+        if (typewriterActive) stopTypewriter();
+        else startTypewriter();
+    });
+}
+
+// ============================================
+// RANDOM FACTS
+// ============================================
 const factText = document.getElementById("factText");
+const factButtons = document.querySelectorAll(".fact-btn");
 
-const worldFacts = [
-    "Honey never spoils.",
-    "Bananas are berries, but strawberries aren't.",
-    "There are more stars in the universe than grains of sand on Earth.",
-    "The Eiffel Tower can grow taller in summer because metal expands when it's hot.",
-    "A single bolt of lightning can heat the air to five times hotter than the surface of the sun.",
-    "Some deserts, like the Arctic, are cold deserts because they get very little rain.",
-    "New Zealand was the first country to give women the right to vote in 1893."
-];
+const facts = {
+    world: [
+        "Australia is wider than the Moon.",
+        "Honey never spoils — edible honey has been found in ancient tombs.",
+        "Japan is made up of over 6,800 islands.",
+        "Antarctica is technically a desert because it gets very little rain.",
+        "Some countries, like Saudi Arabia, have no rivers.",
+        "The Sahara Desert was once green and full of plants."
+    ],
+    animals: [
+        "Octopuses have three hearts and blue blood.",
+        "Cows can have best friends and get stressed when separated.",
+        "A group of flamingos is called a 'flamboyance'.",
+        "Some turtles can breathe through their butts underwater.",
+        "Sloths move so slowly that algae can grow on their fur.",
+        "Elephants can recognize themselves in a mirror."
+    ],
+    space: [
+        "One day on Venus is longer than a year on Venus.",
+        "There are more stars in the universe than grains of sand on Earth.",
+        "Footprints on the Moon may last millions of years.",
+        "Jupiter is so big that over 1,300 Earths could fit inside it.",
+        "Space is completely silent because there is no air.",
+        "The Sun makes up about 99.8% of the mass in our solar system."
+    ],
+    tech: [
+        "The first computer mouse was made of wood.",
+        "Email existed before the World Wide Web.",
+        "Modern smartphones are more powerful than the computers used for Apollo missions.",
+        "The first 1GB hard drive weighed over 200 kilograms.",
+        "The first website went online in 1991 and is still accessible."
+    ],
+    gaming: [
+        "Minecraft was originally called 'Cave Game'.",
+        "The first commercially successful video game was Pong.",
+        "Pac-Man was inspired by a pizza with a slice missing.",
+        "Tetris has been ported to almost every system ever made.",
+        "The Konami Code appears in many games."
+    ],
+    weird: [
+        "Bananas are berries, but strawberries are not.",
+        "Wombat poop is cube-shaped.",
+        "There is a jellyfish that may be biologically immortal.",
+        "You are slightly taller in the morning than at night.",
+        "Some cats are allergic to humans.",
+        "Sharks existed before trees."
+    ]
+};
 
-const animalFacts = [
-    "Octopuses have three hearts and blue blood.",
-    "Cows have best friends and can get stressed when they are separated.",
-    "A group of flamingos is called a 'flamboyance'.",
-    "Some turtles can breathe through their butts when they hibernate underwater.",
-    "Sloths move so slowly that algae can grow on their fur.",
-    "A shrimp's heart is located in its head.",
-    "Elephants can recognize themselves in a mirror, which is a sign of intelligence."
-];
-
-const spaceFacts = [
-    "In space, astronauts can grow a little taller because their spine stretches without gravity.",
-    "Space is completely silent because there is no air to carry sound.",
-    "Neutron stars can spin hundreds of times per second.",
-    "Venus spins in the opposite direction to Earth.",
-    "One day on Venus is longer than one year on Venus.",
-    "Jupiter is so big that more than 1,300 Earths could fit inside it.",
-    "The footprints left on the Moon could stay there for millions of years because there is no wind."
-];
-
-const gameFacts = [
-    "The first commercially successful video game was Pong, released in 1972.",
-    "Minecraft is one of the best-selling video games of all time.",
-    "Speedrunners try to beat games as fast as possible, often using glitches.",
-    "Tetris has been ported to almost every gaming platform ever created.",
-    "The original name for Pac-Man was 'Puck-Man' in Japan.",
-    "Some games secretly change difficulty in the background to keep players engaged.",
-    "Game controllers used to only have a few buttons; now they can have more than 15 controls."
-];
-
-const techFacts = [
-    "The first computer mouse was made of wood.",
-    "Around 90% of the world’s data has been created in just the last few years.",
-    "The word 'robot' comes from a Czech word meaning 'forced labor'.",
-    "The first 1GB hard drive, released in 1980, weighed over 200 kilograms.",
-    "More people in the world own a mobile phone than a toothbrush.",
-    "The first website went online in 1991 and is still accessible.",
-    "Computer viruses have existed since the 1980s."
-];
-
-const historyFacts = [
-    "Ancient Egyptians used hieroglyphs over 5,000 years ago.",
-    "The Great Wall of China is more than 20,000 kilometers long.",
-    "The shortest war in history lasted about 38 minutes (Anglo-Zanzibar War in 1896).",
-    "In ancient Rome, people cleaned clothes using urine because of the ammonia.",
-    "Some medieval castles had secret passages for escape during attacks.",
-    "The first Olympic Games took place in ancient Greece over 2,700 years ago.",
-    "The Titanic was considered 'unsinkable' before it sank in 1912."
-];
-
-if (factText) {
-    document.querySelectorAll(".fact-btn").forEach(btn => {
+if (factText && factButtons.length > 0) {
+    factButtons.forEach(btn => {
         btn.addEventListener("click", () => {
             playSound(clickSfx);
-
-            const type = btn.dataset.type;
-            let list = null;
-
-            if (type === "world")   list = worldFacts;
-            if (type === "animal")  list = animalFacts;
-            if (type === "space")   list = spaceFacts;
-            if (type === "game")    list = gameFacts;
-            if (type === "tech")    list = techFacts;
-            if (type === "history") list = historyFacts;
-
-            if (!list || list.length === 0) return;
-
-            const index = Math.floor(Math.random() * list.length);
-            factText.textContent = list[index];
+            const cat = btn.dataset.category;
+            const arr = facts[cat];
+            if (!arr || arr.length === 0) {
+                factText.textContent = "No facts for this category yet.";
+                return;
+            }
+            const random = arr[Math.floor(Math.random() * arr.length)];
+            factText.textContent = random;
         });
     });
 }
 
-// ===== MINI GAME 1: CLICK RACE =====
-const gameStartButton = document.getElementById("gameStartButton");
-const gameClickButton = document.getElementById("gameClickButton");
-const gameStatus = document.getElementById("gameStatus");
-const gameDurationInput = document.getElementById("gameDurationInput");
+// ============================================
+// CLICK RACE
+// ============================================
+const clickStartButton = document.getElementById("clickStartButton");
+const clickButton = document.getElementById("clickButton");
+const clickStatus = document.getElementById("clickStatus");
+const clickScoreLabel = document.getElementById("clickScore");
+const clickBestLabel = document.getElementById("clickBest");
 const timePresetButtons = document.querySelectorAll(".time-preset-btn");
-const gameTimerLabel = document.getElementById("gameTimerLabel");
+const clickCustomTimeInput = document.getElementById("clickCustomTime");
+const clickApplyCustomButton = document.getElementById("clickApplyCustom");
 
-// Load best click stats from storage
+let clickGameActive = false;
+let clickCount = 0;
+let clickGameTimer = null;
+let clickCountdownTimer = null;
+let clickDurationSeconds = 5;
+let clickGameStartTime = 0;
+
 let bestClickScore = 0;
-let bestClickDurationSeconds = 5;
-let gameDurationSeconds = 5;
-
+let bestClickDuration = 5;
 const storedClick = loadFromStorage("vp_clickBest", null);
 if (storedClick && typeof storedClick.score === "number" && typeof storedClick.duration === "number") {
     bestClickScore = storedClick.score;
-    bestClickDurationSeconds = storedClick.duration;
+    bestClickDuration = storedClick.duration;
 }
 
-function getClickRank(score) {
-    if (score >= 60) return "Rank: Machine";
-    if (score >= 40) return "Rank: Lightning";
-    if (score >= 25) return "Rank: Fast";
-    if (score >= 10) return "Rank: Warming up";
-    return "Rank: Beginner";
+function getClickRank(score, duration) {
+    const cps = duration > 0 ? score / duration : 0;
+    if (cps >= 10) return "Legendary";
+    if (cps >= 7)  return "Insane";
+    if (cps >= 5)  return "Fast";
+    if (cps >= 3)  return "Warm-up";
+    return "Chill";
 }
 
-if (gameStartButton && gameClickButton && gameStatus) {
-    let gameActive = false;
-    let clickCount = 0;
-    let gameTimerId = null;
-    let gameCountdownInterval = null;
-    let gameStartTime = 0;
+function updateClickBestDisplay() {
+    const d = bestClickDuration || 1;
+    const cps = (bestClickScore / d).toFixed(1);
+    if (clickBestLabel) {
+        clickBestLabel.textContent = `Best: ${bestClickScore} clicks (${cps} cps, ${getClickRank(bestClickScore, d)})`;
+    }
+    if (statsClickBest) {
+        statsClickBest.textContent = `Best Click Race score: ${bestClickScore} clicks (${cps} cps, ${getClickRank(bestClickScore, d)})`;
+    }
+}
+updateClickBestDisplay();
 
-    function updateClickStats() {
-        const durationForBest = bestClickDurationSeconds || gameDurationSeconds || 1;
-        const bestCps = (bestClickScore / durationForBest).toFixed(1);
+function stopClickRace(finalReason) {
+    clickGameActive = false;
+    if (clickGameTimer) clearTimeout(clickGameTimer);
+    if (clickCountdownTimer) clearInterval(clickCountdownTimer);
+    clickGameTimer = null;
+    clickCountdownTimer = null;
 
-        if (statsClickBest) {
-            statsClickBest.textContent =
-                `Best Click Race score: ${bestClickScore} clicks (${bestCps} cps over ${durationForBest}s)`;
-        }
+    if (clickButton) clickButton.disabled = true;
+
+    const elapsed = (Date.now() - clickGameStartTime) / 1000;
+    const cps = elapsed > 0 ? (clickCount / elapsed).toFixed(1) : "0.0";
+    const rank = getClickRank(clickCount, elapsed);
+
+    if (clickStatus) {
+        clickStatus.textContent = `${finalReason} You clicked ${clickCount} times in ${elapsed.toFixed(1)}s (${cps} cps, ${rank}).`;
     }
 
-    function applyDuration(seconds) {
-        gameDurationSeconds = seconds;
-
-        timePresetButtons.forEach(btn => {
-            const btnValue = parseInt(btn.dataset.seconds, 10);
-            const isActive = btnValue === gameDurationSeconds;
-            btn.classList.toggle("active", isActive);
-        });
-
-        if (gameDurationInput) {
-            gameDurationInput.value = gameDurationSeconds;
-        }
-
-        gameStatus.textContent =
-            `Round length set to ${gameDurationSeconds} seconds. Press "Start game" to begin.`;
-
-        if (gameTimerLabel) {
-            gameTimerLabel.textContent = `Time left: ${gameDurationSeconds.toFixed(1)}s`;
-        }
-
-        updateClickStats();
+    if (clickCount > bestClickScore) {
+        bestClickScore = clickCount;
+        bestClickDuration = elapsed;
+        saveToStorage("vp_clickBest", { score: bestClickScore, duration: bestClickDuration });
+        playSound(perfectSfx || clickSfx);
+    } else {
+        playSound(gameOverSfx || clickSfx);
     }
 
-    function startClickRace() {
-        if (gameActive) return;
+    updateClickBestDisplay();
+    updateStatsPanel();
+}
 
-        playSound(startFanSfx || clickSfx);
-        setActiveGameCard(clickRaceCard);
-
-        gameActive = true;
-        clickCount = 0;
-        gameStatus.textContent = "Game started! Click the button as fast as you can!";
-        gameClickButton.disabled = false;
-
-        if (gameTimerId) clearTimeout(gameTimerId);
-        if (gameCountdownInterval) clearInterval(gameCountdownInterval);
-
-        gameStartTime = Date.now();
-
-        if (gameTimerLabel) {
-            gameTimerLabel.textContent = `Time left: ${gameDurationSeconds.toFixed(1)}s`;
-        }
-
-        // Live countdown
-        gameCountdownInterval = setInterval(() => {
-            if (!gameActive) {
-                clearInterval(gameCountdownInterval);
-                return;
-            }
-            const elapsed = (Date.now() - gameStartTime) / 1000;
-            const remaining = Math.max(0, gameDurationSeconds - elapsed);
-            if (gameTimerLabel) {
-                gameTimerLabel.textContent = `Time left: ${remaining.toFixed(1)}s`;
-            }
-            if (remaining <= 0) {
-                clearInterval(gameCountdownInterval);
-            }
-        }, 100);
-
-        // End-of-round
-        gameTimerId = setTimeout(() => {
-            gameActive = false;
-            gameClickButton.disabled = true;
-            setActiveGameCard(null);
-
-            if (gameCountdownInterval) clearInterval(gameCountdownInterval);
-            if (gameTimerLabel) {
-                gameTimerLabel.textContent = "Time left: 0.0s";
-            }
-
-            const cps = gameDurationSeconds > 0
-                ? (clickCount / gameDurationSeconds).toFixed(1)
-                : "0.0";
-            const rank = getClickRank(clickCount);
-
-            gameStatus.textContent =
-                `Time's up! You clicked ${clickCount} times (${cps} clicks/sec). ${rank}`;
-
-            if (clickCount > bestClickScore) {
-                bestClickScore = clickCount;
-                bestClickDurationSeconds = gameDurationSeconds;
-                saveToStorage("vp_clickBest", {
-                    score: bestClickScore,
-                    duration: bestClickDurationSeconds
-                });
-                updateClickStats();
-            }
-
-            playSound(gameOverSfx);
-        }, gameDurationSeconds * 1000);
-    }
-
-    function handleClickRaceClick() {
-        if (!gameActive) return;
-        clickCount++;
-        gameStatus.textContent = `Clicks: ${clickCount}`;
-        playSound(clickSfx);
-    }
-
-    // Wire buttons
-    gameStartButton.addEventListener("click", startClickRace);
-    gameClickButton.addEventListener("click", handleClickRaceClick);
-
-    // Preset time buttons
+if (clickStartButton && clickButton) {
+    // Preset buttons
     timePresetButtons.forEach(btn => {
         btn.addEventListener("click", () => {
-            const seconds = parseInt(btn.dataset.seconds, 10);
-            if (!isNaN(seconds)) {
-                playSound(clickSfx);
-                applyDuration(seconds);
-            }
-        });
-
-        btn.addEventListener("mouseenter", () => {
-            playSound(hoverSfx);
+            const sec = Number(btn.dataset.seconds || "5");
+            if (isNaN(sec) || sec < 3 || sec > 60) return;
+            clickDurationSeconds = sec;
+            if (clickStatus) clickStatus.textContent = `Timer set to ${sec}s. Press "Start Round" to play.`;
+            playSound(clickSfx);
         });
     });
 
-    // Custom duration input
-    if (gameDurationInput) {
-        gameDurationInput.addEventListener("change", () => {
-            let value = parseInt(gameDurationInput.value, 10);
-            if (isNaN(value)) value = 5;
-            if (value < 3) value = 3;
-            if (value > 60) value = 60;
-
-            playSound(clickSfx);
-            gameDurationSeconds = value;
-            timePresetButtons.forEach(btn => btn.classList.remove("active"));
-            gameDurationInput.value = value;
-            gameStatus.textContent =
-                `Custom round length set to ${gameDurationSeconds} seconds. Press "Start game" to begin.`;
-
-            if (gameTimerLabel) {
-                gameTimerLabel.textContent = `Time left: ${gameDurationSeconds.toFixed(1)}s`;
+    // Custom time
+    if (clickApplyCustomButton && clickCustomTimeInput) {
+        clickApplyCustomButton.addEventListener("click", () => {
+            const sec = Number(clickCustomTimeInput.value);
+            if (isNaN(sec) || sec < 3 || sec > 60) {
+                if (clickStatus) clickStatus.textContent = "Custom time must be between 3 and 60 seconds.";
+                return;
             }
-
-            updateClickStats();
+            clickDurationSeconds = sec;
+            if (clickStatus) clickStatus.textContent = `Timer set to ${sec}s. Press "Start Round" to play.`;
+            playSound(clickSfx);
         });
-
-        gameDurationInput.value = gameDurationSeconds;
     }
 
-    applyDuration(gameDurationSeconds);
-    updateClickStats();
+    // Start round
+    clickStartButton.addEventListener("click", () => {
+        if (clickGameActive) return;
+
+        const duration = clickDurationSeconds || 5;
+        clickGameActive = true;
+        clickCount = 0;
+        clickGameStartTime = Date.now();
+        setActiveGameCard(clickRaceCard);
+        playSound(startFanSfx || clickSfx);
+
+        if (clickScoreLabel) clickScoreLabel.textContent = "Score: 0 clicks";
+        if (clickButton) clickButton.disabled = false;
+
+        let remaining = duration;
+        if (clickCountdownTimer) clearInterval(clickCountdownTimer);
+        clickCountdownTimer = setInterval(() => {
+            if (!clickGameActive) {
+                clearInterval(clickCountdownTimer);
+                return;
+            }
+            remaining = Math.max(0, remaining - 0.1);
+            const elapsed = (Date.now() - clickGameStartTime) / 1000;
+            const cps = elapsed > 0 ? (clickCount / elapsed).toFixed(1) : "0.0";
+            if (clickStatus) {
+                clickStatus.textContent = `Time left: ${remaining.toFixed(1)}s — Clicks: ${clickCount} (${cps} cps)`;
+            }
+            if (remaining <= 0) clearInterval(clickCountdownTimer);
+        }, 100);
+
+        if (clickGameTimer) clearTimeout(clickGameTimer);
+        clickGameTimer = setTimeout(() => {
+            stopClickRace("Time's up!");
+        }, duration * 1000);
+    });
+
+    // Click during round
+    clickButton.addEventListener("click", () => {
+        if (!clickGameActive) return;
+        clickCount++;
+        playSound(clickSfx);
+        if (clickScoreLabel) clickScoreLabel.textContent = `Score: ${clickCount} clicks`;
+    });
 }
 
-// ===== MINI GAME 2: JUMP RUNNER =====
+// ============================================
+// JUMP RUNNER (SIDE-SCROLL, JS-BASED JUMP)
+// ============================================
 const runnerStartButton = document.getElementById("runnerStartButton");
 const runnerArea = document.getElementById("runnerArea");
 const runnerCharacter = document.getElementById("runnerCharacter");
 const runnerObstacle = document.getElementById("runnerObstacle");
 const runnerStatus = document.getElementById("runnerStatus");
-const runnerScoreElement = document.getElementById("runnerScore");
-const runnerBestElement = document.getElementById("runnerBest");
-
-const runnerOverlay = document.getElementById("runnerOverlay");
-const runnerOverlayMessage = document.getElementById("runnerOverlayMessage");
-const runnerOverlayReplay = document.getElementById("runnerOverlayReplay");
-
+const runnerScoreEl = document.getElementById("runnerScore");
+const runnerBestEl = document.getElementById("runnerBest");
+const runnerMeta = document.getElementById("runnerMeta");
+const runnerLivesContainer = document.getElementById("runnerLives");
 const runnerModeButtons = document.querySelectorAll(".runner-mode-btn");
-const diffButtons = document.querySelectorAll(".difficulty-btn");
+const runnerDiffButtons = document.querySelectorAll(".difficulty-btn");
 
-// Load runner best from storage
-let runnerBestTime = loadFromStorage("vp_runnerBestTime", 0);
-let difficulty = "normal";
-let runnerMode = "endless"; // "endless" or "goal"
-
-const difficultySettings = {
-    easy:   { obstacleSpeed: "2.2s", jumpHeight: 95, jumpDuration: 650, lives: 5 },
-    normal: { obstacleSpeed: "1.6s", jumpHeight: 80, jumpDuration: 550, lives: 3 },
-    hard:   { obstacleSpeed: "1.2s", jumpHeight: 70, jumpDuration: 450, lives: 1 }
-};
-
+let runnerMode = "endless";        // "endless" | "goal"
+let runnerDifficulty = "easy";     // "easy" | "normal" | "hard"
 let runnerActive = false;
 let runnerStartTime = 0;
-let runnerCollisionInterval = null;
-let runnerTimerInterval = null;
-let isJumping = false;
-let runnerLives = 3;
+let runnerGameLoop = null;
 
-const RUNNER_SPEED_METERS_PER_SEC = 5;
-const GOAL_DISTANCE = 250;
+let runnerLives = 5;
+let runnerMaxLives = 5;
 
-function livesToHearts(lives) {
-    const safeLives = Math.max(0, lives);
-    return "Lives: " + "♥".repeat(safeLives || 0);
-}
+// Character vertical physics
+let runnerY = 15;       // bottom position in px
+let runnerVelY = 0;     // vertical velocity
+const RUNNER_GROUND_Y = 15;
+const RUNNER_GRAVITY = -0.9;  // change per frame (30ms)
+
+// Obstacle horizontal position
+let runnerObstacleX = 0;
+const RUNNER_OBS_SPEED_PX = 3.5; // px per frame
+
+// Distance / scoring
+const RUNNER_WORLD_SPEED = 5;    // meters per second
+const RUNNER_GOAL_DISTANCE = 250;
+
+// Difficulty config (Option A style)
+// Improved difficulty tuning so jumps can clear obstacles
+const diffConfig = {
+    easy:   { jumpImpulse: 22, lives: 5, speed: 3.2 },
+    normal: { jumpImpulse: 20, lives: 3, speed: 3.6 },
+    hard:   { jumpImpulse: 18, lives: 1, speed: 4.0 }
+};
+
+// Best stats (time + distance)
+let runnerBestTime = loadFromStorage("vp_runnerBestTime", 0);
+let runnerBestDist = loadFromStorage("vp_runnerBestDist", 0);
 
 function updateRunnerBestDisplay() {
-    const bestDistance = runnerBestTime * RUNNER_SPEED_METERS_PER_SEC;
-
-    if (runnerBestElement) {
-        runnerBestElement.textContent =
-            `Best time: ${runnerBestTime}s (Distance: ${bestDistance} m)`;
+    const bestDist = Math.round(runnerBestDist);
+    if (runnerBestEl) {
+        runnerBestEl.textContent = `Best time: ${runnerBestTime}s (Distance: ${bestDist} m)`;
     }
     if (statsRunnerBest) {
-        statsRunnerBest.textContent =
-            `Best Jump Runner: ${runnerBestTime}s, ${bestDistance} m`;
+        statsRunnerBest.textContent = `Best Jump Runner: ${runnerBestTime}s, ${bestDist} m`;
+    }
+}
+
+function updateRunnerMeta() {
+    if (!runnerMeta) return;
+    const cfg = diffConfig[runnerDifficulty] || diffConfig.easy;
+    const diffLabel = runnerDifficulty.charAt(0).toUpperCase() + runnerDifficulty.slice(1);
+
+    runnerMeta.innerHTML = `
+        <span class="chip">${runnerMode === "endless" ? "Endless mode" : "Goal mode (250m)"}</span>
+        <span class="chip">${diffLabel}</span>
+        <span class="chip chip-green">${cfg.lives} lives</span>
+    `;
+}
+
+function updateRunnerLivesDisplay() {
+    if (!runnerLivesContainer) return;
+    runnerLivesContainer.innerHTML = "";
+    for (let i = 0; i < runnerMaxLives; i++) {
+        const heart = document.createElement("div");
+        heart.classList.add("runner-heart");
+        if (i >= runnerLives) heart.classList.add("lost");
+        runnerLivesContainer.appendChild(heart);
     }
 }
 
 updateRunnerBestDisplay();
 
-function startRunnerGame() {
-    if (!runnerArea || !runnerCharacter || !runnerObstacle || !runnerStatus) return;
-    if (runnerActive) return;
+// Difficulty & mode
+function setRunnerDifficulty(diff) {
+    const cfg = diffConfig[diff] || diffConfig.easy;
+    runnerDifficulty = diff;
+    runnerMaxLives = cfg.lives;
+    runnerLives = cfg.lives;
 
-    playSound(startFanSfx || clickSfx);
-    setActiveGameCard(jumpRunnerCard);
-
-    if (runnerOverlay) {
-        runnerOverlay.style.display = "none";
-    }
-
-    const settings = difficultySettings[difficulty] || difficultySettings.normal;
-
-    runnerActive = true;
-    runnerLives = settings.lives;
-    runnerStartTime = Date.now();
-    runnerStatus.textContent =
-        `Game started! Mode: ${runnerMode}. Lives: ${runnerLives}. Difficulty: ${difficulty}. Press spacebar or click to jump.`;
-
-    if (runnerScoreElement) {
-        runnerScoreElement.textContent = "Distance: 0 m";
-    }
-    if (runnerLivesBadge) {
-        runnerLivesBadge.textContent = livesToHearts(runnerLives);
-    }
-
-    runnerObstacle.style.animation =
-        `runner-obstacle-move ${settings.obstacleSpeed} linear infinite`;
-
-    if (runnerCollisionInterval) clearInterval(runnerCollisionInterval);
-    runnerCollisionInterval = setInterval(checkRunnerCollision, 40);
-
-    if (runnerTimerInterval) clearInterval(runnerTimerInterval);
-    runnerTimerInterval = setInterval(updateRunnerTime, 500);
-
-    if (bgMusic && soundEnabled) {
-        bgMusic.play().catch(() => {});
-    }
-}
-
-function endRunnerGame(message) {
-    runnerActive = false;
-    setActiveGameCard(null);
-
-    if (runnerObstacle) {
-        runnerObstacle.style.animation = "none";
-    }
-
-    if (runnerCollisionInterval) clearInterval(runnerCollisionInterval);
-    if (runnerTimerInterval) clearInterval(runnerTimerInterval);
-
-    if (runnerStatus) {
-        runnerStatus.textContent = message;
-    }
-
-    if (runnerOverlay && runnerOverlayMessage) {
-        runnerOverlayMessage.textContent = message;
-        runnerOverlay.style.display = "flex";
-    }
-
-    playSound(gameOverSfx);
-}
-
-function updateRunnerTime() {
-    if (!runnerActive) return;
-    const seconds = Math.floor((Date.now() - runnerStartTime) / 1000);
-    const distance = seconds * RUNNER_SPEED_METERS_PER_SEC;
-
-    if (runnerMode === "goal" && distance >= GOAL_DISTANCE) {
-        if (seconds > runnerBestTime) {
-            runnerBestTime = seconds;
-            saveToStorage("vp_runnerBestTime", runnerBestTime);
-            updateRunnerBestDisplay();
-        }
-
-        endRunnerGame(
-            `You reached the finish! ${distance} m in ${seconds}s on ${difficulty} (Mode: Goal).`
-        );
-        return;
-    }
-
-    if (runnerStatus) {
-        runnerStatus.textContent =
-            `Time survived: ${seconds}s | Lives: ${runnerLives} | Mode: ${runnerMode} | Difficulty: ${difficulty}`;
-    }
-
-    if (runnerScoreElement) {
-        runnerScoreElement.textContent = `Distance: ${distance} m`;
-    }
-
-    if (seconds > 0 && seconds % 15 === 0) {
-        playSound(perfectSfx);
-    }
-}
-
-function resetObstacle() {
-    if (!runnerObstacle) return;
-    const settings = difficultySettings[difficulty] || difficultySettings.normal;
-
-    runnerObstacle.style.animation = "none";
-    void runnerObstacle.offsetWidth;
-    runnerObstacle.style.animation =
-        `runner-obstacle-move ${settings.obstacleSpeed} linear infinite`;
-
-    playSound(whooshSfx);
-}
-
-function checkRunnerCollision() {
-    if (!runnerActive) return;
-    if (!runnerCharacter || !runnerObstacle) return;
-
-    const charRect = runnerCharacter.getBoundingClientRect();
-    const obsRect = runnerObstacle.getBoundingClientRect();
-
-    const charSafe = {
-        left: charRect.left + 4,
-        right: charRect.right - 4,
-        top: charRect.top + 4,
-        bottom: charRect.bottom - 2
-    };
-
-    const obsSafe = {
-        left: obsRect.left + 4,
-        right: obsRect.right - 4,
-        top: obsRect.top + 4,
-        bottom: obsRect.bottom - 2
-    };
-
-    const noOverlap =
-        charSafe.right < obsSafe.left ||
-        charSafe.left > obsSafe.right ||
-        charSafe.bottom < obsSafe.top ||
-        charSafe.top > obsSafe.bottom;
-
-    if (!noOverlap) {
-        runnerLives -= 1;
-        if (runnerLivesBadge) {
-            runnerLivesBadge.textContent = livesToHearts(Math.max(runnerLives, 0));
-        }
-
-        if (runnerLives <= 0) {
-            const seconds = Math.floor((Date.now() - runnerStartTime) / 1000);
-            const distance = seconds * RUNNER_SPEED_METERS_PER_SEC;
-
-            if (seconds > runnerBestTime) {
-                runnerBestTime = seconds;
-                saveToStorage("vp_runnerBestTime", runnerBestTime);
-                updateRunnerBestDisplay();
-            }
-
-            endRunnerGame(
-                `Game over! You survived ${seconds}s and ran ${distance} m on ${difficulty} (Mode: ${runnerMode}).`
-            );
-        } else {
-            if (runnerStatus) {
-                runnerStatus.textContent =
-                    `Ouch! You got hit. Lives left: ${runnerLives} | Mode: ${runnerMode} | Difficulty: ${difficulty}`;
-            }
-            playSound(hitSfx);
-            resetObstacle();
-        }
-    }
-}
-
-// Jump – always allowed
-function jump() {
-    if (isJumping) return;
-    if (!runnerCharacter) return;
-
-    isJumping = true;
-
-    const settings = difficultySettings[difficulty] || difficultySettings.normal;
-    runnerCharacter.style.setProperty("--jump-height", settings.jumpHeight + "px");
-    runnerCharacter.style.setProperty("--jump-duration", settings.jumpDuration + "ms");
-
-    runnerCharacter.classList.add("jump");
-    playSound(jumpSfx);
-
-    setTimeout(() => {
-        runnerCharacter.classList.remove("jump");
-        isJumping = false;
-    }, settings.jumpDuration);
-}
-
-// Difficulty buttons
-function setDifficulty(newDiff) {
-    difficulty = newDiff || "normal";
-    const settings = difficultySettings[difficulty] || difficultySettings.normal;
-
-    if (runnerStatus) {
-        runnerStatus.textContent =
-            `Difficulty set to: ${difficulty} (Lives: ${settings.lives}). Mode: ${runnerMode}. Press "Start runner game" to play.`;
-    }
-
-    diffButtons.forEach(btn => {
-        const isActive = btn.dataset.diff === difficulty;
-        btn.classList.toggle("active", isActive);
+    runnerDiffButtons.forEach(btn => {
+        btn.classList.toggle("active", btn.dataset.diff === diff);
     });
 
-    if (runnerDiffBadge) {
-        runnerDiffBadge.textContent =
-            `Difficulty: ${difficulty.charAt(0).toUpperCase() + difficulty.slice(1)}`;
-        runnerDiffBadge.classList.remove("badge-diff-easy", "badge-diff-normal", "badge-diff-hard");
-        runnerDiffBadge.classList.add("badge-diff-" + difficulty);
-    }
-
-    if (runnerLivesBadge) {
-        runnerLivesBadge.textContent = livesToHearts(settings.lives);
-    }
-
-    playSound(diffSelectSfx);
+    updateRunnerMeta();
+    updateRunnerLivesDisplay();
+    playSound(diffSelectSfx || clickSfx);
 }
 
-diffButtons.forEach(btn => {
-    btn.addEventListener("click", () => {
-        setDifficulty(btn.dataset.diff);
-    });
-
-    btn.addEventListener("mouseenter", () => {
-        playSound(hoverSfx);
-    });
-});
-
-// Runner mode buttons
-function setRunnerMode(newMode) {
-    runnerMode = newMode || "endless";
-
+function setRunnerMode(mode) {
+    runnerMode = mode;
     runnerModeButtons.forEach(btn => {
-        const isActive = btn.dataset.mode === runnerMode;
-        btn.classList.toggle("active", isActive);
+        btn.classList.toggle("active", btn.dataset.mode === mode);
     });
-
-    if (runnerStatus) {
-        runnerStatus.textContent =
-            `Mode set to: ${runnerMode}. Press "Start runner game" to play.`;
-    }
-
-    if (runnerModeBadge) {
-        const label = runnerMode === "endless" ? "Endless" : "Goal (250m)";
-        runnerModeBadge.textContent = `Mode: ${label}`;
-    }
+    updateRunnerMeta();
+    playSound(whooshSfx || clickSfx);
 }
 
 runnerModeButtons.forEach(btn => {
     btn.addEventListener("click", () => {
-        const mode = btn.dataset.mode;
-        if (mode === "endless" || mode === "goal") {
-            playSound(clickSfx);
-            setRunnerMode(mode);
-        }
-    });
-
-    btn.addEventListener("mouseenter", () => {
-        playSound(hoverSfx);
+        setRunnerMode(btn.dataset.mode || "endless");
     });
 });
 
-// Initial mode + difficulty
-setDifficulty(difficulty);
-setRunnerMode(runnerMode);
+runnerDiffButtons.forEach(btn => {
+    btn.addEventListener("click", () => {
+        setRunnerDifficulty(btn.dataset.diff || "easy");
+    });
+});
 
-// Wire Runner buttons and area
+// Defaults
+setRunnerMode("endless");
+setRunnerDifficulty("easy");
+
+// Reset positions
+function resetRunnerPositions() {
+    if (!runnerArea || !runnerCharacter || !runnerObstacle) return;
+
+    const areaRect = runnerArea.getBoundingClientRect();
+
+    // Character
+    runnerY = RUNNER_GROUND_Y;
+    runnerVelY = 0;
+    runnerCharacter.style.bottom = `${runnerY}px`;
+    runnerCharacter.style.left = "50px";
+
+    // Obstacle just off right edge
+    runnerObstacleX = areaRect.width + 40;
+    runnerObstacle.style.left = `${runnerObstacleX}px`;
+    runnerObstacle.style.bottom = `${RUNNER_GROUND_Y}px`;
+}
+
+// Jump (JS physics)
+function runnerJump() {
+    if (!runnerActive || !runnerCharacter) return;
+
+    // Only jump if basically on ground
+    if (runnerY > RUNNER_GROUND_Y + 1) return;
+
+    const cfg = diffConfig[runnerDifficulty] || diffConfig.easy;
+    runnerVelY = cfg.jumpImpulse;
+    playSound(jumpSfx || clickSfx);
+}
+
+// Space + click
+document.addEventListener("keydown", (e) => {
+    if (e.code === "Space") {
+        e.preventDefault();
+        runnerJump();
+    }
+});
+if (runnerArea) {
+    runnerArea.addEventListener("click", () => {
+        runnerJump();
+    });
+}
+
+// End game
+function endRunnerGame(win) {
+    runnerActive = false;
+    setActiveGameCard(null);
+
+    if (runnerGameLoop) {
+        clearInterval(runnerGameLoop);
+        runnerGameLoop = null;
+    }
+
+    const elapsed = (Date.now() - runnerStartTime) / 1000;
+    const timeSec = parseFloat(elapsed.toFixed(1));
+    const distance = Math.floor(timeSec * RUNNER_WORLD_SPEED);
+
+    // Update best
+    if (timeSec > runnerBestTime || distance > runnerBestDist) {
+        runnerBestTime = timeSec;
+        runnerBestDist = distance;
+        saveToStorage("vp_runnerBestTime", runnerBestTime);
+        saveToStorage("vp_runnerBestDist", runnerBestDist);
+        updateRunnerBestDisplay();
+    }
+
+    let msg;
+    if (win) {
+        msg = `You reached ${RUNNER_GOAL_DISTANCE}m in ${timeSec}s — nice!`;
+        playSound(perfectSfx || clickSfx);
+    } else {
+        msg = `Game over! You reached ${distance}m in ${timeSec}s.`;
+        playSound(gameOverSfx || hitSfx);
+    }
+
+    if (runnerStatus) runnerStatus.textContent = msg;
+    updateStatsPanel();
+}
+
+// Start game
+function startRunnerGame() {
+    if (!runnerArea || !runnerCharacter || !runnerObstacle || !runnerStatus) return;
+    if (runnerActive) return;
+
+    runnerActive = true;
+    runnerStartTime = Date.now();
+    setActiveGameCard(jumpRunnerCard);
+    playSound(startFanSfx || clickSfx);
+
+    const cfg = diffConfig[runnerDifficulty] || diffConfig.easy;
+    runnerMaxLives = cfg.lives;
+    runnerLives = cfg.lives;
+    updateRunnerLivesDisplay();
+    resetRunnerPositions();
+
+    if (runnerStatus) {
+        runnerStatus.textContent =
+            `Runner started! Mode: ${runnerMode}, Difficulty: ${runnerDifficulty}, Lives: ${runnerLives}.`;
+    }
+    if (runnerScoreEl) runnerScoreEl.textContent = "Distance: 0 m";
+
+    // Main loop (30ms)
+    if (runnerGameLoop) clearInterval(runnerGameLoop);
+    runnerGameLoop = setInterval(() => {
+        if (!runnerActive || !runnerArea || !runnerCharacter || !runnerObstacle) return;
+
+        const areaRect = runnerArea.getBoundingClientRect();
+        const charRect = runnerCharacter.getBoundingClientRect();
+        const obsRect = runnerObstacle.getBoundingClientRect();
+
+        // Vertical physics
+        runnerVelY += RUNNER_GRAVITY;
+        runnerY += runnerVelY;
+        if (runnerY < RUNNER_GROUND_Y) {
+            runnerY = RUNNER_GROUND_Y;
+            runnerVelY = 0;
+        }
+        runnerCharacter.style.bottom = `${runnerY}px`;
+
+        // Move obstacle left
+        // Move obstacle left (speed depends on difficulty)
+	const cfg = diffConfig[runnerDifficulty] || diffConfig.easy;
+	runnerObstacleX -= cfg.speed;
+	if (runnerObstacleX < -40) {
+    runnerObstacleX = areaRect.width + 40;
+	}
+	runnerObstacle.style.left = `${runnerObstacleX}px`;
+
+        // Time & distance
+        const elapsed = (Date.now() - runnerStartTime) / 1000;
+        const dist = Math.floor(elapsed * RUNNER_WORLD_SPEED);
+        if (runnerScoreEl) runnerScoreEl.textContent = `Distance: ${dist} m`;
+
+        if (runnerMode === "goal" && dist >= RUNNER_GOAL_DISTANCE) {
+            endRunnerGame(true);
+            return;
+        }
+
+        // Collision
+        const overlap =
+            charRect.left < obsRect.right &&
+            charRect.right > obsRect.left &&
+            charRect.bottom > obsRect.top &&
+            charRect.top < obsRect.bottom;
+
+        if (overlap) {
+            runnerLives = Math.max(0, runnerLives - 1);
+            updateRunnerLivesDisplay();
+            playSound(hitSfx || gameOverSfx);
+
+            if (runnerLives <= 0) {
+                endRunnerGame(false);
+                return;
+            } else {
+                if (runnerStatus) runnerStatus.textContent = `Hit! Lives left: ${runnerLives}`;
+                runnerObstacleX = areaRect.width + 40;
+                runnerObstacle.style.left = `${runnerObstacleX}px`;
+            }
+        }
+    }, 30);
+}
+
 if (runnerStartButton) {
     runnerStartButton.addEventListener("click", startRunnerGame);
 }
 
-if (runnerArea) {
-    runnerArea.addEventListener("click", () => {
-        jump();
-    });
-}
+// Make sure best view is synced
+updateRunnerBestDisplay();
 
-if (runnerOverlayReplay) {
-    runnerOverlayReplay.addEventListener("click", () => {
-        playSound(clickSfx);
-        if (runnerOverlay) {
-            runnerOverlay.style.display = "none";
-        }
-        startRunnerGame();
-    });
-}
-
-// Keyboard controls (SPACE + B/T/F)
-document.addEventListener("keydown", (event) => {
-    const key = event.key.toLowerCase();
-
-    if (event.code === "Space") {
-        event.preventDefault();
-        jump();
-        return;
-    }
-
-    if (key === "b") {
-        changeAccentColor();
-    } else if (key === "t") {
-        toggleTitle();
-    } else if (key === "f") {
-        changeFont();
-    }
-});
-
-// ===== MINI GAME 3: REACTION TEST =====
+// ============================================
+// REACTION TEST
+// ============================================
 const reactionStartButton = document.getElementById("reactionStartButton");
 const reactionArea = document.getElementById("reactionArea");
 const reactionPrompt = document.getElementById("reactionPrompt");
 const reactionStatus = document.getElementById("reactionStatus");
-const reactionBestElement = document.getElementById("reactionBest");
+const reactionBestLabel = document.getElementById("reactionBest");
 const reactionModeButtons = document.querySelectorAll(".reaction-mode-btn");
 
-let reactionMode = "classic";        // "classic" | "average" | "hard"
-let reactionState = "idle";          // "idle" | "waiting" | "ready"
-let reactionTimeoutId = null;
-let reactionStartTime = 0;
-let reactionTimes = [];              // used in average mode
-let reactionBestMs = loadFromStorage("vp_reactionBestMs", null); // lowest reaction time (ms)
+let reactionMode = "classic";
+let reactionState = "idle"; // idle | waiting | ready
+let reactionTimer = null;
+let reactionStartTimeMs = 0;
+let reactionRounds = 0;
+let reactionTotalMs = 0;
 
-function setReactionMode(newMode) {
-    reactionMode = newMode;
+let bestReactionMs = loadFromStorage("vp_reactionBestMs", null);
 
-    reactionModeButtons.forEach(btn => {
-        const isActive = btn.dataset.mode === reactionMode;
-        btn.classList.toggle("active", isActive);
-    });
-
-    let modeText = "";
-    if (reactionMode === "classic") {
-        modeText = "Classic. Wait for green, then click as fast as you can.";
-    } else if (reactionMode === "average") {
-        modeText = "Average (5). React 5 times, then see your average.";
-    } else if (reactionMode === "hard") {
-        modeText = "Hard. If you click too early or react too slowly, you fail.";
-    }
-
-    if (reactionStatus) {
-        reactionStatus.textContent = `Mode: ${modeText}`;
-    }
-    if (reactionPrompt) {
-        reactionPrompt.textContent = "Press Start to begin.";
-    }
-    setReactionVisualState("idle");
-}
-
-function setReactionVisualState(state) {
-    if (!reactionArea) return;
-
-    reactionArea.classList.remove("reaction-idle", "reaction-waiting", "reaction-ready");
-
-    if (state === "idle") {
-        reactionArea.classList.add("reaction-idle");
-    } else if (state === "waiting") {
-        reactionArea.classList.add("reaction-waiting");
-    } else if (state === "ready") {
-        reactionArea.classList.add("reaction-ready");
-    }
-
-    reactionState = state;
-}
-
-function formatMs(ms) {
-    return `${ms} ms`;
-}
-
-function updateReactionBest(ms) {
-    if (reactionBestMs === null || ms < reactionBestMs) {
-        reactionBestMs = ms;
-        saveToStorage("vp_reactionBestMs", reactionBestMs);
-
-        if (reactionBestElement) {
-            reactionBestElement.textContent = `Best reaction: ${formatMs(reactionBestMs)}`;
-        }
-        if (statsReactionBest) {
-            statsReactionBest.textContent = `Best Reaction: ${formatMs(reactionBestMs)}`;
-        }
-
-        playSound(perfectSfx);
-    }
-}
-
-// If we already had a best reaction saved, show it
-if (reactionBestMs !== null) {
-    if (reactionBestElement) {
-        reactionBestElement.textContent = `Best reaction: ${formatMs(reactionBestMs)}`;
+function updateReactionBestDisplay() {
+    if (reactionBestLabel) {
+        reactionBestLabel.textContent =
+            bestReactionMs === null ? "Best Reaction: –" : `Best Reaction: ${bestReactionMs} ms`;
     }
     if (statsReactionBest) {
-        statsReactionBest.textContent = `Best Reaction: ${formatMs(reactionBestMs)}`;
+        statsReactionBest.textContent =
+            bestReactionMs === null ? "Best Reaction: –" : `Best Reaction: ${bestReactionMs} ms`;
     }
 }
+updateReactionBestDisplay();
 
-function scheduleReactionTrial() {
-    if (!reactionArea || !reactionPrompt || !reactionStatus) return;
-
-    setReactionVisualState("waiting");
-    reactionPrompt.textContent = "Wait for green...";
-    reactionStatus.textContent = "Don't click yet.";
-
-    let minDelay, maxDelay;
-    if (reactionMode === "hard") {
-        minDelay = 700;
-        maxDelay = 2500;
-    } else {
-        minDelay = 1000;
-        maxDelay = 3000;
-    }
-
-    const delay = Math.floor(Math.random() * (maxDelay - minDelay + 1)) + minDelay;
-
-    if (reactionTimeoutId) clearTimeout(reactionTimeoutId);
-
-    reactionTimeoutId = setTimeout(() => {
-        setReactionVisualState("ready");
-        reactionPrompt.textContent = "CLICK!";
-        reactionStatus.textContent = "Now!";
-        reactionStartTime = performance.now();
+reactionModeButtons.forEach(btn => {
+    btn.addEventListener("click", () => {
+        const mode = btn.dataset.mode || "classic";
+        reactionMode = mode;
+        reactionModeButtons.forEach(b => b.classList.toggle("active", b.dataset.mode === mode));
         playSound(clickSfx);
-    }, delay);
-}
-
-function startReactionTest() {
-    if (!reactionArea || !reactionPrompt || !reactionStatus) return;
-
-    if (reactionTimeoutId) clearTimeout(reactionTimeoutId);
-    reactionTimes = [];
-
-    playSound(startFanSfx || clickSfx);
-    setActiveGameCard(reactionCard);
-
-    if (reactionMode === "average") {
-        reactionStatus.textContent = "Average mode: Round 1 of 5. Wait for green.";
-    } else {
-        reactionStatus.textContent = "Get ready. Wait for green.";
-    }
-
-    setReactionVisualState("waiting");
-    scheduleReactionTrial();
-}
-
-function handleReactionClick() {
-    if (!reactionArea || !reactionPrompt || !reactionStatus) return;
-    if (reactionState === "idle") return;
-
-    const now = performance.now();
-
-    // Early click
-    if (reactionState === "waiting") {
-        playSound(hitSfx);
-
-        if (reactionMode === "hard") {
-            setReactionVisualState("idle");
-            if (reactionTimeoutId) clearTimeout(reactionTimeoutId);
-            setActiveGameCard(null);
-            reactionStatus.textContent = "Too early! Hard mode failed. Press Start to try again.";
-            reactionPrompt.textContent = "Press Start to try again.";
-        } else {
-            setReactionVisualState("idle");
-            if (reactionTimeoutId) clearTimeout(reactionTimeoutId);
-            setActiveGameCard(null);
-            reactionStatus.textContent = "Too early! Only click when it turns green. Press Start to retry.";
-            reactionPrompt.textContent = "Press Start to try again.";
-        }
-        return;
-    }
-
-    // Correct time
-    if (reactionState === "ready") {
-        const ms = Math.round(now - reactionStartTime);
-        playSound(clickSfx);
-        setReactionVisualState("idle");
-
-        if (reactionMode === "classic" || reactionMode === "hard") {
-            if (reactionMode === "hard" && ms > 300) {
-                playSound(gameOverSfx);
-                reactionStatus.textContent =
-                    `Too slow for Hard mode! You reacted in ${formatMs(ms)} (need under 300 ms).`;
-                reactionPrompt.textContent = "Press Start to try again.";
-                setActiveGameCard(null);
-            } else {
-                reactionStatus.textContent = `Your reaction time: ${formatMs(ms)}.`;
-                reactionPrompt.textContent = "Press Start to play again.";
-                updateReactionBest(ms);
-                setActiveGameCard(null);
-            }
-        } else if (reactionMode === "average") {
-            reactionTimes.push(ms);
-            const roundsTotal = 5;
-
-            if (reactionTimes.length < roundsTotal) {
-                const nextRound = reactionTimes.length + 1;
-                reactionStatus.textContent =
-                    `Round ${reactionTimes.length} of ${roundsTotal}: ${formatMs(ms)}. Get ready for round ${nextRound}.`;
-                scheduleReactionTrial();
-            } else {
-                const sum = reactionTimes.reduce((a, b) => a + b, 0);
-                const avg = Math.round(sum / reactionTimes.length);
-                reactionStatus.textContent =
-                    `All 5 rounds done! Times: ${reactionTimes.map(formatMs).join(", ")}. Average: ${formatMs(avg)}.`;
-                reactionPrompt.textContent = "Press Start to play again.";
-                updateReactionBest(avg);
-                setActiveGameCard(null);
-            }
-        }
-
-        return;
-    }
-}
-
-// Wire Reaction Test listeners
-if (reactionStartButton && reactionArea && reactionPrompt && reactionStatus) {
-    reactionStartButton.addEventListener("click", () => {
-        startReactionTest();
-    });
-
-    reactionArea.addEventListener("click", () => {
-        handleReactionClick();
-    });
-
-    reactionModeButtons.forEach(btn => {
-        btn.addEventListener("click", () => {
-            const mode = btn.dataset.mode;
-            if (!mode) return;
-            playSound(clickSfx);
-            setReactionMode(mode);
-        });
-
-        btn.addEventListener("mouseenter", () => {
-            playSound(hoverSfx);
-        });
-    });
-
-    setReactionMode(reactionMode);
-}
-
-// ===== RESET STATS BUTTON (with confirmation) =====
-if (resetStatsButton) {
-    resetStatsButton.addEventListener("click", () => {
-        const ok = confirm("Reset all best scores? This cannot be undone.");
-        if (!ok) {
-            playSound(hitSfx);
-            return;
-        }
-
-        bestClickScore = 0;
-        bestClickDurationSeconds = 5;
-        runnerBestTime = 0;
-        reactionBestMs = null;
-
-        saveToStorage("vp_clickBest", { score: bestClickScore, duration: bestClickDurationSeconds });
-        saveToStorage("vp_runnerBestTime", runnerBestTime);
-        saveToStorage("vp_reactionBestMs", reactionBestMs);
-
-        if (statsClickBest) {
-            statsClickBest.textContent = "Best Click Race score: 0 clicks";
-        }
-        if (statsRunnerBest) {
-            statsRunnerBest.textContent = "Best Jump Runner: 0s, 0 m";
-        }
-        if (statsReactionBest) {
-            statsReactionBest.textContent = "Best Reaction: –";
-        }
-        if (runnerBestElement) {
-            runnerBestElement.textContent = "Best time: 0s (Distance: 0 m)";
-        }
-        if (reactionBestElement) {
-            reactionBestElement.textContent = "Best reaction: –";
-        }
-
-        if (runnerStatus) {
-            runnerStatus.textContent = "Stats reset. Try for a new high score!";
-        }
-
-        playSound(clickSfx);
-    });
-}
-
-// ===== EXTRA HOVER SOUND ON KEY BUTTONS =====
-const hoverButtons = [
-    gameStartButton,
-    gameClickButton,
-    runnerStartButton,
-    resetStatsButton,
-    reactionStartButton
-];
-
-hoverButtons.forEach(btn => {
-    if (!btn) return;
-    btn.addEventListener("mouseenter", () => {
-        playSound(hoverSfx);
     });
 });
+
+function startReactionRound() {
+    if (!reactionArea || !reactionPrompt) return;
+
+    if (reactionTimer) clearTimeout(reactionTimer);
+    reactionState = "waiting";
+    reactionArea.classList.remove("reaction-ready");
+    reactionArea.classList.add("reaction-wait");
+    reactionPrompt.textContent = "Wait for green...";
+    if (reactionStatus) reactionStatus.textContent = "";
+    setActiveGameCard(reactionCard);
+
+    let minDelay = 800;
+    let maxDelay = 2500;
+    if (reactionMode === "hard") {
+        minDelay = 600;
+        maxDelay = 1700;
+    }
+
+    reactionTimer = setTimeout(() => {
+        reactionState = "ready";
+        reactionArea.classList.remove("reaction-wait");
+        reactionArea.classList.add("reaction-ready");
+        reactionPrompt.textContent = "CLICK NOW!";
+        reactionStartTimeMs = performance.now();
+        playSound(perfectSfx || clickSfx);
+    }, minDelay + Math.random() * (maxDelay - minDelay));
+}
+
+if (reactionStartButton) {
+    reactionStartButton.addEventListener("click", () => {
+        reactionRounds = 0;
+        reactionTotalMs = 0;
+        startReactionRound();
+    });
+}
+
+if (reactionArea) {
+    reactionArea.addEventListener("click", () => {
+        if (reactionState === "waiting") {
+            if (reactionTimer) clearTimeout(reactionTimer);
+            reactionState = "idle";
+            reactionArea.classList.remove("reaction-wait", "reaction-ready");
+            reactionPrompt.textContent = "Too early! Click Start to try again.";
+            if (reactionStatus) reactionStatus.textContent = "Too early.";
+            playSound(hitSfx || clickSfx);
+        } else if (reactionState === "ready") {
+            const now = performance.now();
+            const delta = Math.round(now - reactionStartTimeMs);
+            reactionState = "idle";
+            reactionArea.classList.remove("reaction-wait", "reaction-ready");
+
+            if (reactionMode === "average") {
+                reactionRounds++;
+                reactionTotalMs += delta;
+                if (reactionRounds < 5) {
+                    reactionPrompt.textContent = `You: ${delta} ms. Round ${reactionRounds}/5...`;
+                    if (reactionStatus) reactionStatus.textContent = "Next round starting...";
+                    setTimeout(startReactionRound, 700);
+                } else {
+                    const avg = Math.round(reactionTotalMs / reactionRounds);
+                    reactionPrompt.textContent = `Average: ${avg} ms over 5 rounds.`;
+                    if (reactionStatus) reactionStatus.textContent = "Average mode finished.";
+                    if (bestReactionMs === null || avg < bestReactionMs) {
+                        bestReactionMs = avg;
+                        saveToStorage("vp_reactionBestMs", bestReactionMs);
+                    }
+                    updateReactionBestDisplay();
+                    updateStatsPanel();
+                }
+            } else {
+                reactionPrompt.textContent = `Reaction: ${delta} ms`;
+                if (reactionStatus) reactionStatus.textContent = "Click Start to try again.";
+                if (bestReactionMs === null || delta < bestReactionMs) {
+                    bestReactionMs = delta;
+                    saveToStorage("vp_reactionBestMs", bestReactionMs);
+                }
+                updateReactionBestDisplay();
+                updateStatsPanel();
+            }
+
+            playSound(perfectSfx || clickSfx);
+        }
+    });
+}
+
+// ============================================
+// AIM TRAINER
+// ============================================
+const aimDurationInput = document.getElementById("aimDurationInput");
+const aimStartButton = document.getElementById("aimStartButton");
+const aimArea = document.getElementById("aimArea");
+const aimStatus = document.getElementById("aimStatus");
+const aimScoreLabel = document.getElementById("aimScore");
+const aimBestLabel = document.getElementById("aimBest");
+const aimDiffButtons = document.querySelectorAll(".aim-diff-btn");
+
+let aimDifficulty = "easy";
+let aimRunning = false;
+let aimDuration = 20;
+let aimTimeLeft = 0;
+let aimHits = 0;
+let aimMisses = 0;
+let aimTimer = null;
+let aimSpawnTimer = null;
+
+let aimBestHits = loadFromStorage("vp_aimBestHits", 0);
+
+function updateAimBestDisplay() {
+    if (aimBestLabel) aimBestLabel.textContent = `Best Aim Trainer score: ${aimBestHits} hits`;
+    if (statsAimBest) statsAimBest.textContent = `Best Aim Trainer score: ${aimBestHits} hits`;
+}
+updateAimBestDisplay();
+
+aimDiffButtons.forEach(btn => {
+    btn.addEventListener("click", () => {
+        aimDiffButtons.forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        aimDifficulty = btn.dataset.diff || "easy";
+        playSound(clickSfx);
+    });
+});
+
+if (aimDurationInput) {
+    aimDurationInput.addEventListener("change", () => {
+        const v = Number(aimDurationInput.value);
+        if (isNaN(v) || v < 5 || v > 60) {
+            if (aimStatus) aimStatus.textContent = "Duration must be between 5 and 60 seconds.";
+            return;
+        }
+        aimDuration = v;
+    });
+}
+
+function spawnAimTarget() {
+    if (!aimRunning || !aimArea) return;
+
+    aimArea.innerHTML = "";
+    const rect = aimArea.getBoundingClientRect();
+    const size = 34;
+    const padding = 10;
+
+    const maxX = rect.width - size - padding;
+    const maxY = rect.height - size - padding;
+
+    const x = padding + Math.random() * maxX;
+    const y = padding + Math.random() * maxY;
+
+    const target = document.createElement("div");
+    target.classList.add("aim-target");
+    target.style.left = `${x}px`;
+    target.style.top = `${y}px`;
+
+    target.addEventListener("click", (e) => {
+        e.stopPropagation();
+        aimHits++;
+        if (aimScoreLabel) aimScoreLabel.textContent = `Score: ${aimHits} hits, ${aimMisses} misses`;
+        playSound(clickSfx);
+    });
+
+    aimArea.appendChild(target);
+}
+
+if (aimArea) {
+    aimArea.addEventListener("click", (e) => {
+        if (!aimRunning) return;
+        if (!e.target.classList.contains("aim-target")) {
+            aimMisses++;
+            if (aimScoreLabel) aimScoreLabel.textContent = `Score: ${aimHits} hits, ${aimMisses} misses`;
+        }
+    });
+}
+
+function endAimTrainer() {
+    aimRunning = false;
+    if (aimTimer) clearInterval(aimTimer);
+    if (aimSpawnTimer) clearInterval(aimSpawnTimer);
+    aimTimer = null;
+    aimSpawnTimer = null;
+
+    if (aimStatus) aimStatus.textContent = `Round over — ${aimHits} hits, ${aimMisses} misses.`;
+    setActiveGameCard(null);
+
+    if (aimHits > aimBestHits) {
+        aimBestHits = aimHits;
+        saveToStorage("vp_aimBestHits", aimBestHits);
+    }
+
+    updateAimBestDisplay();
+    updateStatsPanel();
+
+    if (aimArea) {
+        aimArea.innerHTML = "";
+        const p = document.createElement("p");
+        p.classList.add("aim-placeholder");
+        p.textContent = 'Press "Start Aim Trainer" to begin. Click the targets when they appear!';
+        aimArea.appendChild(p);
+    }
+}
+
+if (aimStartButton && aimArea) {
+    aimStartButton.addEventListener("click", () => {
+        if (aimRunning) return;
+
+        aimRunning = true;
+        aimHits = 0;
+        aimMisses = 0;
+        aimTimeLeft = aimDuration || 20;
+
+        if (aimScoreLabel) aimScoreLabel.textContent = `Score: 0 hits, 0 misses`;
+        if (aimStatus) aimStatus.textContent = `Time left: ${aimTimeLeft}s`;
+
+        setActiveGameCard(aimTrainerCard);
+        playSound(startFanSfx || clickSfx);
+
+        aimArea.innerHTML = "";
+
+        let interval = 1000;
+        if (aimDifficulty === "normal") interval = 800;
+        if (aimDifficulty === "hard") interval = 650;
+
+        spawnAimTarget();
+        aimSpawnTimer = setInterval(spawnAimTarget, interval);
+
+        aimTimer = setInterval(() => {
+            aimTimeLeft--;
+            if (aimStatus) aimStatus.textContent = `Time left: ${aimTimeLeft}s`;
+            if (aimTimeLeft <= 0) {
+                clearInterval(aimTimer);
+                endAimTrainer();
+            }
+        }, 1000);
+    });
+}
+
+// ============================================
+// STATS PANEL
+// ============================================
+function updateStatsPanel() {
+    updateClickBestDisplay();
+    updateRunnerBestDisplay();
+    updateReactionBestDisplay();
+    updateAimBestDisplay();
+}
+
+if (resetStatsButton) {
+    resetStatsButton.addEventListener("click", () => {
+        const ok = confirm("Reset all best scores for all games?");
+        if (!ok) return;
+
+        localStorage.removeItem("vp_clickBest");
+        localStorage.removeItem("vp_runnerBestTime");
+        localStorage.removeItem("vp_runnerBestDist");
+        localStorage.removeItem("vp_reactionBestMs");
+        localStorage.removeItem("vp_aimBestHits");
+
+        bestClickScore = 0;
+        bestClickDuration = 5;
+        runnerBestTime = 0;
+        runnerBestDist = 0;
+        bestReactionMs = null;
+        aimBestHits = 0;
+
+        updateClickBestDisplay();
+        updateRunnerBestDisplay();
+        updateReactionBestDisplay();
+        updateAimBestDisplay();
+        playSound(whooshSfx || clickSfx);
+    });
+}
+
+// Initial stats sync
+updateStatsPanel();

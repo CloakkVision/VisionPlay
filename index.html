@@ -2,296 +2,254 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
-    <title>VisionPlay</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="VisionPlay is a mini web arcade built by Cloakk_Vision with HTML, CSS, and JavaScript. Play Click Race, Jump Runner, Reaction Test, and read random facts." />
-    <!-- Put a favicon.png file in the same folder as this HTML -->
+    <title>VisionPlay</title>
+
+    <meta name="description" content="VisionPlay is an interactive mini arcade featuring Click Race, Jump Runner, Reaction Test, Aim Trainer, random facts, theme switching, sound settings, and customization." />
+
     <link rel="icon" type="image/png" href="favicon.png" />
+
     <link rel="stylesheet" href="style.css" />
 </head>
-<body class="theme-dark">
-    <!-- Top Navigation -->
+<body class="theme-dark font-default">
+    <!-- TOP NAV -->
     <header class="top-nav">
         <div class="nav-left">
             <div class="nav-logo-circle">VP</div>
-            <div class="nav-brand">
-                <span class="nav-title">VisionPlay</span>
-                <span class="nav-subtitle">Mini Web Arcade</span>
-            </div>
+            <span class="nav-title">VisionPlay</span>
         </div>
 
-        <button id="navToggle" class="nav-toggle" aria-label="Toggle navigation">
-            ☰
-        </button>
+        <button id="navToggle" class="nav-toggle" aria-expanded="false">☰</button>
 
         <nav id="navMenu" class="nav-menu">
-            <a href="#top" class="nav-link">Home</a>
-            <a href="#factsSection" class="nav-link">Random Facts</a>
-            <a href="#clickRaceSection" class="nav-link">Click Race</a>
-            <a href="#jumpRunnerSection" class="nav-link">Jump Runner</a>
-            <a href="#reactionSection" class="nav-link">Reaction Test</a>
-            <a href="#statsSection" class="nav-link">Stats</a>
-            <a href="#aboutSection" class="nav-link">About</a>
+            <a class="nav-link" href="#controlsSection">Controls</a>
+            <a class="nav-link" href="#clickRaceSection">Click Race</a>
+            <a class="nav-link" href="#jumpRunnerSection">Jump Runner</a>
+            <a class="nav-link" href="#reactionSection">Reaction Test</a>
+            <a class="nav-link" href="#aimTrainerSection">Aim Trainer</a>
+            <a class="nav-link" href="#factsSection">Random Facts</a>
+            <a class="nav-link" href="#statsSection">Stats</a>
         </nav>
     </header>
 
-    <div class="container" id="top">
-        <div class="panel">
-            <!-- Top row with logo + version -->
-            <div class="top-row">
-                <div class="logo">CV</div>
-                <span class="version-badge">v2.3</span>
-            </div>
+    <!-- HERO -->
+    <section class="hero-section">
+        <div class="hero-logo-circle">VP</div>
+        <h1 id="title" class="hero-title typewriter-target">
+            Welcome to VisionPlay
+        </h1>
+        <p class="hero-subtitle">
+            A mini arcade of games and tools — built by me, customizable by you.
+        </p>
+    </section>
 
-            <!-- Theme + sound row -->
-            <div class="theme-row">
-                <label for="themeSelect">Theme:</label>
-                <select id="themeSelect">
-                    <option value="dark" selected>Dark</option>
-                    <option value="light">Light</option>
-                    <option value="neon">Neon</option>
-                </select>
+    <!-- CONTROLS -->
+    <section id="controlsSection" class="card-section controls-section">
+        <h2>Controls</h2>
 
-                <button id="soundToggleButton" class="sound-toggle" aria-pressed="false" title="Toggle all sounds">
-                    Sound: On
-                </button>
-            </div>
-
-            <!-- Title + intro -->
-            <h1 id="title">Welcome to VisionPlay</h1>
-            <p>Welcome to VisionPlay, my interactive mini arcade on the web.</p>
-
-            <!-- Hero stats row -->
-            <div class="hero-stats">
-                <div class="hero-stat">
-                    <span class="hero-stat-label">Mini games</span>
-                    <span class="hero-stat-value">3</span>
-                </div>
-                <div class="hero-stat">
-                    <span class="hero-stat-label">Fact categories</span>
-                    <span class="hero-stat-value">6</span>
-                </div>
-                <div class="hero-stat">
-                    <span class="hero-stat-label">Custom options</span>
-                    <span class="hero-stat-value">Themes • Colors • Fonts</span>
-                </div>
-            </div>
-
-            <!-- Buttons -->
-            <div class="button-row">
-                <button id="colorButton" title="Change the accent color">Change accent color</button>
-                <button id="titleButton" title="Switch between title styles">Change title</button>
-                <button id="fontButton" title="Cycle through fonts">Change font</button>
-            </div>
-
-            <!-- Divider -->
-            <hr class="divider">
-
-            <!-- General Information section -->
-            <div class="info-section">
-                <h2>General Information</h2>
-                <p>This website was created to help me learn HTML, CSS, and JavaScript.</p>
-                <p>You can change the theme, accent color, title, font, read random facts, and play mini games.</p>
-                <p>This project is a practice space to get better at coding step-by-step.</p>
-            </div>
-
-            <!-- Features list -->
-            <div class="feature-list">
-                <h2>Features</h2>
-                <ul>
-                    <li>Switch between Dark, Light, and Neon themes.</li>
-                    <li>Change the accent color used on buttons and highlights.</li>
-                    <li>Toggle between different title styles.</li>
-                    <li>Cycle between different fonts for the page.</li>
-                    <li>View random facts in multiple categories (world, animals, space, games, tech, history).</li>
-                    <li>Play three mini games: Click Race, Jump Runner, and Reaction Test.</li>
-                    <li>Choose Click Race time: 5 / 10 / 15 / 20 seconds or a custom time.</li>
-                    <li>Play Jump Runner in Endless or Goal (250m) mode, with lives based on difficulty.</li>
-                    <li>Test your reaction in Classic, Average, or Hard modes.</li>
-                    <li>Track best scores in the Stats section and reset them.</li>
-                    <li>Best scores and settings are saved locally so they stay after refresh.</li>
-                </ul>
-            </div>
-
-            <!-- How to use -->
-            <div class="how-to">
-                <h2>How to Use This Site</h2>
-                <ol>
-                    <li>Use the <strong>Theme</strong> dropdown to switch between Dark, Light, and Neon.</li>
-                    <li>Click <strong>Change accent color</strong> or press <strong>B</strong> to cycle colors.</li>
-                    <li>Click <strong>Change title</strong> or press <strong>T</strong> to switch title styles.</li>
-                    <li>Click <strong>Change font</strong> or press <strong>F</strong> to cycle fonts.</li>
-                    <li>Use the Random Fact buttons to see facts about the world, animals, space, games, tech, or history.</li>
-                    <li>In <strong>Click Race</strong>, choose a time (preset or custom), press Start, and click as fast as you can.</li>
-                    <li>In <strong>Jump Runner</strong>, choose a mode and difficulty, press Start, and use spacebar or click to jump.</li>
-                    <li>In <strong>Reaction Test</strong>, choose a mode, press Start, and try to react as fast as possible.</li>
-                </ol>
-            </div>
-
-            <!-- Random facts section -->
-            <div class="card-section random-facts" id="factsSection">
-                <h2>❓ Random Facts</h2>
-                <p>Choose a category and see a random fact.</p>
-
-                <div class="fact-buttons">
-                    <button class="fact-btn" data-type="world">Random World Fact</button>
-                    <button class="fact-btn" data-type="animal">Random Animal Fact</button>
-                    <button class="fact-btn" data-type="space">Random Space Fact</button>
-                    <button class="fact-btn" data-type="game">Random Game Fact</button>
-                    <button class="fact-btn" data-type="tech">Random Tech Fact</button>
-                    <button class="fact-btn" data-type="history">Random History Fact</button>
-                </div>
-
-                <p id="factText" class="fact-text" aria-live="polite"></p>
-            </div>
-
-            <!-- Mini game: Click Race -->
-            <div class="card-section mini-game" id="clickRaceSection">
-                <h2>⚡ Mini Game 1: Click Race</h2>
-                <p>Click as many times as you can in the time limit.</p>
-                <p class="controls">Controls: Press Start, then click the "Click me!" button as fast as you can.</p>
-
-                <!-- Timer controls: presets + custom -->
-                <div class="game-time-controls">
-                    <span>Round length:</span>
-                    <div class="time-preset-row">
-                        <button class="time-preset-btn" data-seconds="5">5s</button>
-                        <button class="time-preset-btn" data-seconds="10">10s</button>
-                        <button class="time-preset-btn" data-seconds="15">15s</button>
-                        <button class="time-preset-btn" data-seconds="20">20s</button>
-                    </div>
-                    <div class="time-custom-row">
-                        <label for="gameDurationInput">Custom (3–60s):</label>
-                        <input id="gameDurationInput" type="number" min="3" max="60" value="5" />
-                    </div>
-                </div>
-
-                <div class="game-controls">
-                    <button id="gameStartButton" title="Start a new Click Race round">Start game</button>
-                    <button id="gameClickButton" disabled title="Click quickly during the round">Click me!</button>
-                </div>
-
-                <p id="gameStatus" class="game-status" aria-live="polite">
-                    Press "Start game" to begin.
-                </p>
-                <p id="gameTimerLabel" class="game-status" aria-live="polite">Time left: 0.0s</p>
-            </div>
-
-            <!-- Mini game: Jump Runner -->
-            <div class="card-section mini-game" id="jumpRunnerSection">
-                <h2>🏃 Mini Game 2: Jump Runner</h2>
-                <p>Press the spacebar or click inside the game area to make the character jump and avoid the obstacle.</p>
-                <p class="controls">Controls: Press Start, then use the spacebar or click inside the box to jump over obstacles.</p>
-
-                <!-- Mode & difficulty badges -->
-                <div class="runner-badges">
-                    <span id="runnerModeBadge" class="badge badge-mode">Mode: Endless</span>
-                    <span id="runnerDiffBadge" class="badge badge-diff-normal">Difficulty: Normal</span>
-                    <span id="runnerLivesBadge" class="badge badge-lives">Lives: ♥♥♥</span>
-                </div>
-
-                <!-- Mode tabs -->
-                <div class="runner-mode-controls">
-                    <button class="runner-mode-btn active" data-mode="endless" title="Run as far as possible">Endless mode</button>
-                    <button class="runner-mode-btn" data-mode="goal" title="Reach 250m to win">Goal mode (250m)</button>
-                </div>
-
-                <div class="runner-controls">
-                    <button id="runnerStartButton" title="Start Jump Runner">Start runner game</button>
-                </div>
-
-                <div class="difficulty-controls">
-                    <button class="difficulty-btn" data-diff="easy"   title="Slower obstacle, 5 lives">Easy</button>
-                    <button class="difficulty-btn" data-diff="normal" title="Balanced, 3 lives">Normal</button>
-                    <button class="difficulty-btn" data-diff="hard"   title="Fast obstacle, 1 life">Hard</button>
-                </div>
-
-                <div id="runnerArea">
-                    <!-- Parallax background layers -->
-                    <div class="runner-bg runner-bg-sky"></div>
-                    <div class="runner-bg runner-bg-mountains"></div>
-                    <div class="runner-bg runner-bg-hills"></div>
-                    <div class="runner-bg runner-bg-ground"></div>
-
-                    <div id="runnerGround"></div>
-                    <div id="runnerCharacter"></div>
-                    <div id="runnerObstacle"></div>
-
-                    <!-- Game over / finish overlay -->
-                    <div id="runnerOverlay" class="runner-overlay">
-                        <div class="runner-overlay-box">
-                            <h3>Jump Runner</h3>
-                            <p id="runnerOverlayMessage"></p>
-                            <button id="runnerOverlayReplay">Play again</button>
-                        </div>
-                    </div>
-                </div>
-
-                <p id="runnerStatus" class="game-status" aria-live="polite">
-                    Choose a mode and difficulty, then press "Start runner game".
-                </p>
-                <p id="runnerScore" class="game-status" aria-live="polite">Distance: 0 m</p>
-                <p id="runnerBest" class="game-status">Best time: 0s (Distance: 0 m)</p>
-            </div>
-
-            <!-- Mini game: Reaction Test -->
-            <div class="card-section mini-game" id="reactionSection">
-                <h2>⏱ Mini Game 3: Reaction Test</h2>
-                <p>Test how fast you can react in different modes.</p>
-                <p class="controls">Controls: Press Start, then click inside the box when it turns green.</p>
-
-                <!-- Mode controls -->
-                <div class="reaction-mode-controls">
-                    <button class="reaction-mode-btn active" data-mode="classic" title="Single reaction test">Classic</button>
-                    <button class="reaction-mode-btn" data-mode="average" title="Average of 5 reactions">Average (5)</button>
-                    <button class="reaction-mode-btn" data-mode="hard" title="Don't click early and be fast">Hard</button>
-                </div>
-
-                <!-- Reaction area -->
-                <div id="reactionArea" class="reaction-area reaction-idle">
-                    <p id="reactionPrompt">Choose a mode and press "Start".</p>
-                </div>
-
-                <!-- Controls -->
-                <div class="reaction-controls">
-                    <button id="reactionStartButton" title="Start the reaction test">Start</button>
-                </div>
-
-                <!-- Status text -->
-                <p id="reactionStatus" class="game-status" aria-live="polite">
-                    Mode: Classic. Wait for green, then click as fast as you can.
-                </p>
-                <p id="reactionBest" class="game-status">
-                    Best reaction: –
-                </p>
-            </div>
-
-            <!-- Stats section -->
-            <div class="card-section stats-section" id="statsSection">
-                <h2>📊 Stats</h2>
-                <div class="scoreboard">
-                    <p id="statsClickBest" class="game-status">Best Click Race score: 0 clicks</p>
-                    <p id="statsRunnerBest" class="game-status">Best Jump Runner: 0s, 0 m</p>
-                    <p id="statsReactionBest" class="game-status">Best Reaction: –</p>
-                </div>
-                <button id="resetStatsButton">Reset stats</button>
-            </div>
-
-            <!-- About section -->
-            <div class="card-section about-section" id="aboutSection">
-                <h2>ℹ️ About VisionPlay</h2>
-                <p>VisionPlay is my personal web arcade where I practice HTML, CSS, and JavaScript.</p>
-                <p>It includes themes, color controls, random facts, and mini games built entirely by me.</p>
-                <p>This is a learning project — every update helps me improve my coding skills.</p>
-                <p>This site is built with HTML, CSS, and vanilla JavaScript. It uses localStorage to remember your best scores, theme, and sound settings.</p>
-                <p>If you are viewing this on GitHub Pages, you are seeing the live version of my learning project.</p>
-            </div>
+        <div class="control-row">
+            <label>Theme:</label>
+            <select id="themeSelect">
+                <option value="dark">Dark</option>
+                <option value="light">Light</option>
+                <option value="neon">Neon</option>
+            </select>
         </div>
+
+        <div class="control-row">
+            <label>Background music:</label>
+            <select id="soundThemeSelect">
+                <option value="classic">Classic</option>
+                <option value="arcade">Arcade</option>
+                <option value="soft">Soft</option>
+            </select>
+        </div>
+
+        <div class="control-row">
+            <button id="soundToggleButton" class="sound-toggle">Sound: Off</button>
+        </div>
+
+        <div class="control-row">
+            <button id="colorButton">Change Accent Color</button>
+            <button id="fontButton">Change Font</button>
+            <button id="titleButton">Change Title</button>
+            <button id="typewriterToggleButton">Toggle Typewriter</button>
+        </div>
+    </section>
+
+    <!-- CLICK RACE -->
+    <section id="clickRaceSection" class="card-section game-section">
+        <h2>Mini Game 1: Click Race</h2>
+        <p>Click as fast as you can before the timer ends.</p>
+
+        <div class="click-presets">
+            <button class="time-preset-btn" data-seconds="5">5s</button>
+            <button class="time-preset-btn" data-seconds="10">10s</button>
+            <button class="time-preset-btn" data-seconds="15">15s</button>
+            <button class="time-preset-btn" data-seconds="20">20s</button>
+        </div>
+
+        <div class="click-custom-row">
+            <input type="number" id="clickCustomTime" min="3" max="60" placeholder="Custom seconds" />
+            <button id="clickApplyCustom">Apply</button>
+        </div>
+
+        <div class="click-race-controls">
+            <button id="clickStartButton">Start Round</button>
+        </div>
+
+        <button id="clickButton" class="click-main-button" disabled>CLICK!</button>
+
+        <p id="clickStatus" class="game-status"></p>
+        <p id="clickScore" class="game-status">Score: 0 clicks</p>
+        <p id="clickBest" class="game-status">Best: 0 clicks</p>
+    </section>
+
+    <!-- JUMP RUNNER -->
+    <section id="jumpRunnerSection" class="card-section mini-game">
+        <h2>Mini Game 2: Jump Runner</h2>
+        <p>Press space or click the game area to jump and avoid obstacles.</p>
+	    
+	<div class="runner-tip">
+        <span class="runner-tip-icon">💡</span>
+        <span class="runner-tip-text">
+            Tip: Jump close to the obstacle but not too close!!
+        </span>
     </div>
 
-    <!-- Footer -->
+        <!-- Mode Tabs -->
+        <div class="runner-mode-controls">
+            <button class="runner-mode-btn active" data-mode="endless">Endless Mode</button>
+            <button class="runner-mode-btn" data-mode="goal">Goal Mode (250m)</button>
+        </div>
+
+        <!-- Difficulty -->
+        <div class="runner-difficulty-row">
+            <button class="difficulty-btn active" data-diff="easy">Easy</button>
+            <button class="difficulty-btn" data-diff="normal">Normal</button>
+            <button class="difficulty-btn" data-diff="hard">Hard</button>
+        </div>
+
+        <!-- Top row -->
+        <div class="runner-top-row">
+            <button id="runnerStartButton">Start Runner Game</button>
+        </div>
+
+        <!-- Meta & lives -->
+        <div id="runnerMeta" class="runner-meta"></div>
+        <div id="runnerLives" class="runner-lives"></div>
+
+        <!-- Game Area with parallax layers -->
+        <div id="runnerArea">
+            <div class="runner-bg layer-far"></div>
+            <div class="runner-bg layer-mid"></div>
+            <div class="runner-bg layer-near"></div>
+            <div id="runnerGround"></div>
+            <div id="runnerCharacter"></div>
+            <div id="runnerObstacle"></div>
+        </div>
+
+        <p id="runnerStatus" class="game-status"></p>
+        <p id="runnerScore" class="game-status">Distance: 0 m</p>
+        <p id="runnerBest" class="game-status">Best time: 0s (Distance: 0 m)</p>
+    </section>
+
+    <!-- REACTION TEST -->
+    <section id="reactionSection" class="card-section mini-game">
+        <h2>Mini Game 3: Reaction Test</h2>
+
+        <div class="reaction-mode-controls">
+            <button class="reaction-mode-btn active" data-mode="classic">Classic</button>
+            <button class="reaction-mode-btn" data-mode="average">Average</</button>
+            <button class="reaction-mode-btn" data-mode="hard">Hard</button>
+        </div>
+
+        <button id="reactionStartButton">Start Reaction Test</button>
+
+        <div id="reactionArea" class="reaction-area">
+            <p id="reactionPrompt">Press Start to begin.</p>
+        </div>
+
+        <p id="reactionStatus" class="game-status"></p>
+        <p id="reactionBest" class="game-status">Best Reaction: –</p>
+    </section>
+
+    <!-- AIM TRAINER -->
+    <section id="aimTrainerSection" class="card-section mini-game">
+        <h2>Mini Game 4: Aim Trainer</h2>
+
+        <div class="aim-settings-row">
+            <label>Duration (seconds):</label>
+            <input type="number" id="aimDurationInput" min="5" max="60" value="20" />
+        </div>
+
+        <div class="aim-difficulty-row">
+            <button class="aim-diff-btn active" data-diff="easy">Easy</button>
+            <button class="aim-diff-btn" data-diff="normal">Normal</button>
+            <button class="aim-diff-btn" data-diff="hard">Hard</button>
+        </div>
+
+        <button id="aimStartButton">Start Aim Trainer</button>
+
+        <div id="aimArea" class="aim-area">
+            <p class="aim-placeholder">
+                Press "Start Aim Trainer" to begin. Click the targets when they appear!
+            </p>
+        </div>
+
+        <p id="aimStatus" class="game-status"></p>
+        <p id="aimScore" class="game-status">Score: 0 hits, 0 misses</p>
+        <p id="aimBest" class="game-status">Best Aim Trainer score: 0 hits</p>
+    </section>
+
+    <!-- RANDOM FACTS -->
+    <section id="factsSection" class="card-section facts-section">
+        <h2>Random Facts</h2>
+
+        <div class="fact-buttons">
+            <button class="fact-btn" data-category="world">World</button>
+            <button class="fact-btn" data-category="animals">Animals</button>
+            <button class="fact-btn" data-category="space">Space</button>
+            <button class="fact-btn" data-category="tech">Tech</button>
+            <button class="fact-btn" data-category="gaming">Gaming</button>
+            <button class="fact-btn" data-category="weird">Weird</button>
+        </div>
+
+        <div class="fact-display">
+            <p id="factText">Choose a category to get a fact.</p>
+        </div>
+    </section>
+
+    <!-- STATS -->
+    <section id="statsSection" class="card-section stats-panel">
+        <h2>Stats</h2>
+
+        <div class="stat-row">
+            <div class="stat-icon">⚡</div>
+            <p id="statsClickBest">Best Click Race score: 0 clicks</p>
+        </div>
+
+        <div class="stat-row">
+            <div class="stat-icon">🏃</div>
+            <p id="statsRunnerBest">Best Jump Runner: 0s, 0 m</p>
+        </div>
+
+        <div class="stat-row">
+            <div class="stat-icon">⏱️</div>
+            <p id="statsReactionBest">Best Reaction: –</p>
+        </div>
+
+        <div class="stat-row">
+            <div class="stat-icon">🎯</div>
+            <p id="statsAimBest">Best Aim Trainer score: 0 hits</p>
+        </div>
+
+        <button id="resetStatsButton">Reset Stats</button>
+    </section>
+
+    <!-- FOOTER -->
     <footer class="footer">
-        <p>Made by Cloakk_Vision · <a href="#top" class="footer-link">Back to top</a></p>
+        <p>VisionPlay © 2025 — Built by Cloakk_Vision</p>
     </footer>
 
     <script src="script.js"></script>
